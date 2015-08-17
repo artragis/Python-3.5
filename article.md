@@ -234,7 +234,13 @@ d'écrire des lignes de la forme :
 S = (H.dot(beta) - r).T.dot(inv(H.dot(V).dot(H.T))).dot(H.dot(beta) - r)
 ```
 
-ce qui n'aide pas à la lecture... Le nouvel opérateur `@` est introduit et 
+Celle-ci traduit cette formule :
+
+$$
+(H \times \beta - r)^T \times (H \times V \times H^T)^{-1} \times (H \times \beta - r)
+$$
+
+Cela n'aide pas à la lecture... Le nouvel opérateur `@` est introduit et 
 dédié à la multiplication matricielle. Il permettra d'obtenir des expressions 
 équivalentes de la forme :
 
