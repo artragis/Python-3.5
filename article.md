@@ -222,8 +222,13 @@ $$
 Tandis que certains langages spécialisés possèdent des opérateurs dédiés pour 
 chacune de ces opérations[^ndbp_op_matmatlab] il n'y a en Python rien de 
 similaire. Avec la bibliothèque [numpy](http://www.numpy.org), la plus 
-populaire pour le calcul numérique dans l'éco-système Python, il est pour 
-le moment nécessaire d'utiliser la méthode `dot` et d'écrire des lignes de la forme :
+populaire pour le calcul numérique dans l'éco-système Python, il est possible 
+d'utiliser l'opérateur natif `*` pour effectuer une multiplication terme à 
+terme, surcharge d'opérateur se rencontrant dans la plupart des bibliothèques 
+faisant intervenir les matrices. Mais il n'existe ainsi plus de moyen simple 
+pour effectuer une multiplication matricielle (l'opérateur `*` étant déjà pris). 
+Avec `numpy`, il est pour le moment nécessaire d'utiliser la méthode `dot` et 
+d'écrire des lignes de la forme :
 
 ```python
 S = (H.dot(beta) - r).T.dot(inv(H.dot(V).dot(H.T))).dot(H.dot(beta) - r)
