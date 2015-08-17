@@ -242,14 +242,19 @@ L'introduction de cet opérateur est un modèle du genre. L'ajout de cet opérat
 
 ## Annotations de types -- PEP 484
 
-Les annotations de fonctions [existent depuis Python 3](https://www.python.org/dev/peps/pep-3107/) et permettent d'attacher des objets python quelconques aux arguments et valeur de retours des fonctions :
+Les annotations de fonctions [existent depuis Python 3](https://www.python.org/dev/peps/pep-3107/) 
+et permettent d'attacher des objets Python quelconques aux arguments et 
+et à la valeur de retour d'une fonction :
 
 ```python
 def ma_fonction(param: "Mon annotation", param2: 42) -> str:
     pass
 ```
 
-Depuis le début, il est possible d'utiliser n'importe quels objets comme annotation et l'interpréteur les ignores totalement. C'est à la charge de l'utilisateur d'en faire une utilisation particulière. Avec Python 3.5, bien que rien 
+Depuis le début, il est possible d'utiliser n'importe quel objet comme 
+annotation et l'interpréteur les ignore totalement. Il alors à la charge de 
+l'utilisateur d'en faire une utilisation particulière. Avec Python 3.5, bien 
+que rien 
 
 ## *Unpacking* généralisé -- PEP 448
 
