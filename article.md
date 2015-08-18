@@ -244,17 +244,25 @@ L'introduction de cet opérateur est un modèle du genre. L'ajout de cet opérat
 
 Les annotations de fonctions [existent depuis Python 3](https://www.python.org/dev/peps/pep-3107/) 
 et permettent d'attacher des objets Python quelconques aux arguments et 
-et à la valeur de retour d'une fonction :
+et à la valeur de retour d'une fonction ou d'un méthode :
 
 ```python
 def ma_fonction(param: "Mon annotation", param2: 42) -> str:
     pass
 ```
 
-Depuis le début, il est possible d'utiliser n'importe quel objet comme 
-annotation et l'interpréteur les ignore totalement. Il alors à la charge de 
-l'utilisateur d'en faire une utilisation particulière. Avec Python 3.5, bien 
-que rien 
+Depuis le début, il est possible d'utiliser n'importe quel objet valide comme 
+annotation et l'interpréteur les ignore totalement. Il est alors à la charge de 
+l'utilisateur d'en faire une utilisation particulière. Pour ce faire, il peut 
+récupérer les annotations attachées à une fonction via l'attribut 
+`__annotations__` :
+
+```python
+>>> ma_fonction.__annotations__
+{'param2': 42, 'param': 'Mon annotation', 'return': <class 'str'>}
+```
+
+Avec Python 3.5, bien que rien 
 
 ## *Unpacking* généralisé -- PEP 448
 
