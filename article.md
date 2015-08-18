@@ -262,7 +262,43 @@ récupérer les annotations attachées à une fonction via l'attribut
 {'param2': 42, 'param': 'Mon annotation', 'return': <class 'str'>}
 ```
 
-Avec Python 3.5, bien que rien 
+Avec Python 3.5, bien que rien ne va l'obliger, les annotations deviennent réservées à "l'allusion de types" (*Type Hinting*) qui consiste à indiquer le type des arguments et retours de fonctions. Pour cela la PEP 484 vient normaliser la forme que doivent prendre ces annotations et comment elles doivent être interprétées :
+
+```python
+# Déclaration d'une fonction qui prend en argument une chaine de caractère et en retourne une autre.
+def bonjour(nom: str) -> str:
+    return 'Zestueusement ' + nom
+```
+
+Pour des indications plus complètes, un module `typing` est ajouté permetant de définir des types génériques, des tableaux, etc. 
+
+```python
+from typing import TypeVar, Iterable, Tuple
+
+T = TypeVar('T', int, float, complex)
+Vecteur = Iterable[Tuple[T, T]]
+
+def inproduct(v: Vecteur) -> T:
+    return sum(x*y for x, y in v)
+```
+
+Il serait trop long de détailler ici toutes les possibilités de ce nouveau module. Tout comme rien ne vous oblige à utiliser les annotations pour le typage, rien ne vous oblige à l'utiliser. L'interpréteur n'utilisera ni ne vérifiera toujours pas ces annotations. Leurs objectifs est de normaliser ce type d'informations pour permettre à des outils externes de les utiliser et de vous apporter des informations utiles. Les premiers bénéficiaires seront donc les EDI ou les analyseurs de code statiques comme [mypy](http://mypy-lang.org/) qui a fortement inspiré cette PEP et sera probablement le premier outil à proposer un support complet de cette fonctionnalité.
+
+Enfin comme ces annotations peuvent surcharger les déclarations et les rendre difficilement lisibles, les fichiers `Stub` ont été définit. Ils permettent de définir dans un fichier séparé les annotations de types permettant ainsi de profiter de ces annotations sans polluer le fichier principal. Ces fichiers permettent aussi d'annoter les fonctions de bibliotèques écrites en C. Par exemple voici ce à quoi pourrait ressembler un tel fichier pour le module `datetime` de la bliotèque standard :
+
+```python
+
+class date(object):
+    def __init__(self, year: int, month: int, day: int): ...
+    @classmethod
+    def fromtimestamp(cls, timestamp: int or float) -> date: ...
+    @classmethod
+    def fromordinal(cls, ordinal: int) -> date: ...
+    @classmethod
+    def today(self) -> date: ...
+    def ctime(self) -> str: ...
+    def weekday(self) -> int: ...
+```
 
 ## *Unpacking* généralisé -- PEP 448
 
