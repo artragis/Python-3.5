@@ -253,6 +253,94 @@ Depuis le début, il est possible d'utiliser n'importe quels objets comme annota
 
 ## *Unpacking* généralisé -- PEP 448
 
+L'*unpacking* est l'opération qui permet de passer un itérable comme arguments de fonction comme si son contenu était passé élément par élément grace à l'opérateur `*` ou de passer un dictionnaire comme arguments nommés avec l'opérateur `**` :
+
+```python
+def spam(a, b):
+    return a + b
+
+l = (1, 2)
+c = spam(*l)
+# c == 3
+
+d = {"a": 1, "b": 2}
+c = spam(**d)
+# c == 3
+```
+
+L'*unpacking* permet également de séparer un itérable en plusieurs variables :
+
+```python
+l = (1, 2, 3, 4, 5)
+
+a, b, *c = l
+# a == 1, b == 2, c == (3, 4, 5)
+
+*d, e = c
+# d == (3, 4), e == 5 
+
+```
+
+Cette fonctionnalité restait jusqu'à maintenant limité et les conditions d'utilisations très strict. Deux de ces contraintes ont été levés...
+
+## Support de plusieurs *unpacking* dans les appels de fonctions
+
+Jusqu'à Python 3.4, seulement une seule liste pouvait être utilisé lors de l'appel à une fonction. Cette restriction est maintenant levé :
+
+```python
+def spam(a, b, c, d, e):
+    return a + b + c + d + e
+
+l1 = (1, 2)
+l2 = (4, 5)
+
+f = spam(*l1, 3, *l2)           # Légal en Python 3.5, impossible en Python 3.4
+# f == 15
+
+d1 = {"a": 1, "b": 2}
+d2 = {"d": 4, "e": 5}
+f = spam(**d1, c=3, **d2)       # Légal en Python 3.5, impossible en Python 3.4
+# f == 15
+```
+
+Notez que si un nom de paramètre est présent dans plusieurs dictionnaires, c'est la valeur du dernier dictionnaire qui sera prise en compte. 
+
+## Support de l'*unpacking* dans les déclarations d'itérables
+
+Lorsque vous souhaitez définir un `tuple`, `list`, `set` ou `dict` litéral, il est maintenant possible d'utiliser l'*unpacking* :
+
+```python
+a = (*range(4), 4)              # Légal en Python 3.5, impossible en Python 3.4
+# a = tuple(range(4)) + (4,)    # Equivalent Python 3.4
+# a == (0, 1, 2, 3, 4)
+
+b = [*range(4), 4]              # Légal en Python 3.5, impossible en Python 3.4
+# b = list(range(4)) + [4]      # Equivalent Python 3.4
+# b == [0, 1, 2, 3, 4]
+
+c = {*range(4), 4}              # Légal en Python 3.5, impossible en Python 3.4
+# c = set(range(4)) + {4}       # Equivalent Python 3.4
+# c == {0, 1, 2, 3, 4}
+
+d = {'x': 1, **{'y': 2}}        # Légal en Python 3.5, impossible en Python 3.4
+# Aucun vrai équivalent en Python 3.4, en une expression. Sinon :
+# > d = {'x': 1}
+# > d.update({'y': 2})
+# d == {'x': 1, 'y': 2}
+```
+
+Cette dernière généralisation permet ainsi d'apporter une symétrie par rapport aux possibilités précédentes :
+
+```python
+# Possible en python 3.4
+fst, *other, lst = elems
+
+# Possible uniquement en python 3.5
+elems = fst, *other, lst
+```
+
+Notez que d'autres généralisations [sont évoqués dans la PEP]https://www.python.org/dev/peps/pep-0448/#variations) qui n'ont pas été implémenté dut à un manque de popularité parmit les developpeurs de Python. Il n'est cependant pas impossible que d'autres généralisations soient introduites dans les prochaines versions.
+
 # De plus petits changements
 
  - L'ajout d'un module `zipapp` améliorant le support et la création d'applications packagés sous forme d'archive `zip` introduit dans Python 2.6. Voir a [PEP 441](http://www.python.org/dev/peps/pep-0441).
@@ -266,7 +354,6 @@ Depuis le début, il est possible d'utiliser n'importe quels objets comme annota
  - TODO: https://docs.python.org/3.5/whatsnew/3.5.html#pep-479-change-stopiteration-handling-inside-generators
  - TODO: https://docs.python.org/3.5/whatsnew/3.5.html#pep-486-make-the-python-launcher-aware-of-virtual-environments
  - TODO: https://docs.python.org/3.5/whatsnew/3.5.html#pep-485-a-function-for-testing-approximate-equality
-
 De plus, comme d’habitude, tout un tas de fonctions, de petites modifications et de corrections de bugs ont été apportés à la bibliothèque standard qu'il serait trop long de citer entièrement. 
 
 Notons enfin que le support de Windows XP est supprimé (cela ne veut pas dire que Python 3.5 ne fonctionnera pas dessus, mais rien ne sera fait par les développeurs pour cela). 
