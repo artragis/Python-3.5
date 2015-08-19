@@ -2,13 +2,13 @@ Une nouvelle version du langage [Python](https://www.python.org/) (et par consé
 
 [^ndbp_date_34]: Le 16 Mars 2014 pour être précis. 
 
-# TL;DR - Résumé des nouveautés
+# TL;DR - Résumé des principales nouveautés
 
 Les plus pressés peuvent profiter de ce court résumé [des principales nouveautés](https://docs.python.org/3.5/whatsnew/3.5.html) :
 
  - [PEP 492](https://www.python.org/dev/peps/pep-0492) : les coroutines deviennent une construction spécifique du langage. Cette gestion dans l'interpréteur se fait via deux nouveaux mots-clés (`async` et `await`) et vise à compléter le support de la « programmation asynchrone » dans Python.
- - [PEP 465](http://www.python.org/dev/peps/pep-0465) : un nouvel opérateur binaire `@` est introduit pour gérer la multiplication matricielle.
- - [PEP 484](https://www.python.org/dev/peps/pep-0484/) : les annotations apposables sur les paramètres et la valeur de retour des fonctions sont maintenant standardisées et servent uniquement à préciser le type de ces éléments.
+ - [PEP 465](http://www.python.org/dev/peps/pep-0465) : l'opérateur binaire `@` est introduit pour gérer la multiplication matricielle.
+ - [PEP 484](https://www.python.org/dev/peps/pep-0484/) : les annotations apposables sur les paramètres et la valeur de retour des fonctions et méthodes sont maintenant standardisées et servent uniquement à préciser le type de ces éléments. Il n'est toutefois encore question de conventions seulement.
  - [PEP 448](https://www.python.org/dev/peps/pep-0448/) : les opérations d'*unpacking* sont généralisées et permettent maintenant d'être combinées.
 
 <--COMMENT
