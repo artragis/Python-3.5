@@ -247,7 +247,7 @@ et permettent d'attacher des objets Python quelconques aux arguments
 et à la valeur de retour d'une fonction ou d'un méthode :
 
 ```python
-def ma_fonction(param: "Mon annotation", param2: 42) -> str:
+def ma_fonction(param: str, param2: 42) -> "Mon annotation":
     pass
 ```
 
@@ -259,7 +259,7 @@ récupérer les annotations attachées à une fonction via l'attribut
 
 ```python
 >>> ma_fonction.__annotations__
-{'param2': 42, 'param': 'Mon annotation', 'return': <class 'str'>}
+{'param2': 42, 'return': 'Mon annotation', 'param': <class 'str'>}
 ```
 
 Avec Python 3.5, bien que rien ne va l'obliger, les annotations deviennent réservées à "l'allusion de types" (*Type Hinting*) qui consiste à indiquer le type des arguments et retours de fonctions. Pour cela la PEP 484 vient normaliser la forme que doivent prendre ces annotations et comment elles doivent être interprétées. 
