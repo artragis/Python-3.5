@@ -263,8 +263,7 @@ commencer par *numpy*.
 
 Si vous souhaitez supporter cet opérateur, trois méthodes spéciales peuvent 
 être implémentées : `__matmul__` et `__rmatmul__` pour la forme `a @ b` et 
-`__imatmul__` pour la forme `a @= b`, de façon similaire aux autres opérateurs 
-opérateurs.
+`__imatmul__` pour la forme `a @= b`, de façon similaire aux autres opérateurs.
 
 À noter qu'il est déconseillé d'utiliser cet opérateur pour autre chose que 
 les multiplications matricielles.
