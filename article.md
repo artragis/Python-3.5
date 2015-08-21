@@ -324,8 +324,8 @@ c = {*range(4), 4}              # Légal en Python 3.5, impossible en Python 3.4
 
 d = {'x': 1, **{'y': 2}}        # Légal en Python 3.5, impossible en Python 3.4
 # Aucun vrai équivalent en Python 3.4, en une expression. Sinon :
-# > d = {'x': 1}
-# > d.update({'y': 2})
+# >>> d = {'x': 1}
+# >>> d.update({'y': 2})
 # d == {'x': 1, 'y': 2}
 ```
 
@@ -339,7 +339,7 @@ fst, *other, lst = elems
 elems = fst, *other, lst
 ```
 
-Notez que d'autres généralisations [sont évoqués dans la PEP]https://www.python.org/dev/peps/pep-0448/#variations) qui n'ont pas été implémenté dut à un manque de popularité parmit les developpeurs de Python. Il n'est cependant pas impossible que d'autres généralisations soient introduites dans les prochaines versions.
+Notez que d'autres généralisations [sont évoqués dans la PEP](https://www.python.org/dev/peps/pep-0448/#variations) qui n'ont pas été implémenté dut à un manque de popularité parmit les developpeurs de Python. Il n'est cependant pas impossible que d'autres généralisations soient introduites dans les prochaines versions.
 
 # De plus petits changements
 
