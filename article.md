@@ -243,7 +243,7 @@ L'introduction de cet opérateur est un modèle du genre. L'ajout de cet opérat
 ## Annotations de types -- PEP 484
 
 Les annotations de fonctions [existent depuis Python 3](https://www.python.org/dev/peps/pep-3107/) 
-et permettent d'attacher des objets Python quelconques aux arguments et 
+et permettent d'attacher des objets Python quelconques aux arguments  
 et à la valeur de retour d'une fonction ou d'un méthode :
 
 ```python
