@@ -262,13 +262,15 @@ récupérer les annotations attachées à une fonction via l'attribut
 {'param2': 42, 'param': 'Mon annotation', 'return': <class 'str'>}
 ```
 
-Avec Python 3.5, bien que rien ne va l'obliger, les annotations deviennent réservées à "l'allusion de types" (*Type Hinting*) qui consiste à indiquer le type des arguments et retours de fonctions. Pour cela la PEP 484 vient normaliser la forme que doivent prendre ces annotations et comment elles doivent être interprétées :
+Avec Python 3.5, bien que rien ne va l'obliger, les annotations deviennent réservées à "l'allusion de types" (*Type Hinting*) qui consiste à indiquer le type des arguments et retours de fonctions. Pour cela la PEP 484 vient normaliser la forme que doivent prendre ces annotations et comment elles doivent être interprétées. 
 
 ```python
 # Déclaration d'une fonction qui prend en argument une chaine de caractère et en retourne une autre.
 def bonjour(nom: str) -> str:
     return 'Zestueusement ' + nom
 ```
+
+Toutefois, il ne s'agit encore que de conventions : l'interpréteur Python ne fera rien d'autre que de les stocker dans l'attribut `__annotations__`. Il ne sera même pas gêné si les annotations sont de la forme du premier exemple.
 
 Pour des indications plus complètes, un module `typing` est ajouté permetant de définir des types génériques, des tableaux, etc. 
 
