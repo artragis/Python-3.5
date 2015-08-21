@@ -313,7 +313,7 @@ class date(object):
     def weekday(self) -> int: ...
 ```
 
-Il est important de noter qu'il est à la charge des outils de prendre en compte ces fichiers stubs : ils ne sont pas utilisés directement par l'interpréteur et ne modifieront pas les annotations du fichier d'origine.
+Il est important de noter qu'il est à la charge des outils de prendre en compte ces fichiers stubs : ils ne sont pas utilisés directement par l'interpréteur et ne modifieront pas les annotations du fichier d'origine (le contenu de l'attribut `__annotations__`).
 
 Les annotations de types sont donc qu'un ensemble de conventions comme il en existe déjà plusieur dans le monde Python comme la [PEP 333](https://www.python.org/dev/peps/pep-0333/) pour la comunication entre les serveurs web et les applications Python. Cet ajout n'a donc aucun impact direct sur vos codes mais permettra aux outils de vous fournir des informations supplémentaire.
 
