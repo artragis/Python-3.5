@@ -285,7 +285,7 @@ Cette fonctionnalité restait jusqu'à maintenant limité et les conditions d'ut
 
 ## Support de plusieurs *unpacking* dans les appels de fonctions
 
-Jusqu'à Python 3.4, seulement une seule liste pouvait être utilisé lors de l'appel à une fonction. Cette restriction est maintenant levé :
+Jusqu'à Python 3.4, seulement un seul itérable pouvait être utilisé lors de l'appel à une fonction. Cette restriction est maintenant levé :
 
 ```python
 def spam(a, b, c, d, e):
@@ -295,10 +295,10 @@ l1 = (1, 2)
 l2 = (4, 5)
 
 f = spam(*l1, 3, *l2)           # Légal en Python 3.5, impossible en Python 3.4
-# f == 15
+# f == 1 + 2 + 3 + 4 + 5 = 15
 
-d1 = {"a": 1, "b": 2}
-d2 = {"d": 4, "e": 5}
+d1 = {"b": 2}
+d2 = {"d": 4, "a": 1, "e": 5}
 f = spam(**d1, c=3, **d2)       # Légal en Python 3.5, impossible en Python 3.4
 # f == 15
 ```
