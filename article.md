@@ -6,16 +6,38 @@ Une nouvelle version du langage [Python](https://www.python.org/) (et par consé
 
 Les plus pressés peuvent profiter de ce court résumé [des principales nouveautés](https://docs.python.org/3.5/whatsnew/3.5.html) :
 
- - [PEP 492](https://www.python.org/dev/peps/pep-0492) : les coroutines deviennent une construction spécifique du langage. Cette gestion dans l'interpréteur se fait via deux nouveaux mots-clés (`async` et `await`) et vise à compléter le support de la « programmation asynchrone » dans Python.
- - [PEP 465](http://www.python.org/dev/peps/pep-0465) : l'opérateur binaire `@` est introduit pour gérer la multiplication matricielle.
- - [PEP 484](https://www.python.org/dev/peps/pep-0484/) : les annotations apposables sur les paramètres et la valeur de retour des fonctions et méthodes sont maintenant standardisées et servent uniquement à préciser le type de ces éléments. Les annotations ne sont toujours pas utilisées par l'interpréteur et cette PEP n'est constituée que de conventions.
- - [PEP 448](https://www.python.org/dev/peps/pep-0448/) : les opérations d'*unpacking* sont généralisées et permettent maintenant d'être combinées.
+ - [PEP 492](https://www.python.org/dev/peps/pep-0492) : les coroutines deviennent une construction spécifique du langage. Cette gestion dans l'interpréteur se fait via deux nouveaux mots-clés (`async` et `await`) et vise à compléter le support de la « programmation asynchrone » dans Python. Ces deux mot-clés permettent d'écrire des coroutines utilisables avec `asyncio` de façon similaire à des fonctions python classique. Par exemple :
+   
+   ```python
+   async def fetch_page(url, filename):
+       response = await aiohttp.request('GET', url)
+       assert response.status == 200
+     
+       async with aiofiles.open(filename, mode='wb') as fd:
+          async for chunk in esponse.content.read_chunk(chunk_size):
+              await fd.write(chunk)
+   ```
+   
+ - [PEP 465](http://www.python.org/dev/peps/pep-0465) : l'opérateur binaire `@` est introduit pour gérer la multiplication matricielle et permet d'améliorer la lisibilité d'expressions mathematiques :
+ 
+    ```python
+    S = (H @ beta - r).T @ inv(H @ V @ H.T) @ (H @ beta - r)
+    ```
 
-<--COMMENT
+ - [PEP 484](https://www.python.org/dev/peps/pep-0484/) : les annotations apposables sur les paramètres et la valeur de retour des fonctions et méthodes sont maintenant standardisées et ne devraient servir qu'à préciser le type de ces éléments. Les annotations ne sont toujours pas utilisées par l'interpréteur et cette PEP n'est constituée que de conventions :
+ 
+    ```python
+    def bonjour(nom: str) -> str:
+        return 'Zestueusement ' + nom
+    ```
 
-Pour les 4 principaux thèmes, une section avec le contexte, ce que ça apporte et une note de conclusion
+ - [PEP 448](https://www.python.org/dev/peps/pep-0448/) : les opérations d'*unpacking* sont généralisées et permettent maintenant d'être combinées et être utilisés plusieurs fois dans un appel de fonction :
 
-COMMENT-->
+    ```python
+    d1 = {"b": 2}
+    d2 = {"d": 4, **{"a": 1, "e": 5}}
+    f = spam(**d1, c=3, **d2)
+    ```
 
 # Principales nouveautés
 
