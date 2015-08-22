@@ -189,34 +189,60 @@ Si vous utilisez *asyncio*, rien ne change pour vous et vous pouvez continuer à
 
 ## Opérateur de multiplication matricielle -- PEP 465
 
-L'introduction d'un opérateur binaire n'est pas courant dans python. Aucun dans la série 3.x, le dernier ajout semble être [l'opérateur `//` dans Python 2.2](https://www.python.org/dev/peps/pep-0238/)[^ndbp_op_bin]. Regardons donc pour quels raisons celui-ci a été introduit.
+L'introduction d'un opérateur binaire n'est pas courant dans Python. 
+Aucun dans la série 3.x, le dernier ajout semble être 
+[l'opérateur `//` dans Python 2.2](https://www.python.org/dev/peps/pep-0238/)[^ndbp_op_bin]. 
+Regardons donc pour quelles raisons celui-ci a été introduit.
 
 
-[^ndbp_op_bin]: Ces ajouts sont tellement peu courant qu'il est difficile de trouver des traces de ces modifications. L'opérateur `//` semble être le seul ajout de toute la série 2.
+[^ndbp_op_bin]: Ces ajouts sont tellement peu courants qu'il est difficile de 
+trouver des traces de ces modifications. L'opérateur `//` semble être le seul 
+ajout de toute la série 2.
 
 ### Signification
 
-Ce nouvel opérateur est dédié à la multiplication matricielle. En effet, comme tous ceux qui ont fait un peu de mathématiques algébriques doivent le savoir, pour une matrice on définit généralement la multiplication par l'opération suivante (pour des matrices $2*2$ :
+Ce nouvel opérateur est dédié à la multiplication matricielle. En effet, 
+comme tous ceux qui ont fait un peu de mathématiques algébriques doivent le 
+savoir, pour une matrice on définit généralement la multiplication par 
+l'opération suivante (pour des matrices $2*2$) :
 
 $$
 \begin{pmatrix}a&b \\ c&d \end{pmatrix} \cdot \begin{pmatrix}e&f \\ g&h \end{pmatrix} = 
 \begin{pmatrix}a*e+b*g&a*f+b*h \\ c*e+d*g&c*f+d*h \end{pmatrix}
 $$
 
-or il est souvent aussi nécessaire d'effectuer des multiplications termes à termes :
+Or il est souvent aussi nécessaire d'effectuer des multiplications 
+terme à terme :
 
 $$
 \begin{pmatrix}a&b \\ c&d \end{pmatrix} * \begin{pmatrix}e&f \\ g&h \end{pmatrix} = 
 \begin{pmatrix}a*e&b*f \\ c*e&d*h \end{pmatrix}
 $$
 
-Tandis que certains langages spécialisés possèdent des opérateurs dédiés pour chacune de ces opérations[^ndbp_op_matmatlab] il n'y a en Python rien de similaire. Avec la bibliothèque [numpy](http://www.numpy.org), la plus populaire pour le calcul numérique dans l'éco-système Python, il est pour le moment nécessaire d'utiliser la méthode `dot` et d'écrire des lignes de la forme :
+Tandis que certains langages spécialisés possèdent des opérateurs dédiés pour 
+chacune de ces opérations[^ndbp_op_matmatlab] il n'y a en Python rien de 
+similaire. Avec la bibliothèque [numpy](http://www.numpy.org), la plus 
+populaire pour le calcul numérique dans l'éco-système Python, il est possible 
+d'utiliser l'opérateur natif `*` pour effectuer une multiplication terme à 
+terme, surcharge d'opérateur se rencontrant dans la plupart des bibliothèques 
+faisant intervenir les matrices. Mais il n'existe ainsi plus de moyen simple 
+pour effectuer une multiplication matricielle (l'opérateur `*` étant déjà pris). 
+Avec `numpy`, il est pour le moment nécessaire d'utiliser la méthode `dot` et 
+d'écrire des lignes de la forme :
 
 ```python
 S = (H.dot(beta) - r).T.dot(inv(H.dot(V).dot(H.T))).dot(H.dot(beta) - r)
 ```
 
-ce qui n'aide pas à la lecture... Le nouvel opérateur `@` est introduit et dédié à la multiplication matricielle. Il permettra d'obtenir des expressions équivalentes de la forme :
+Celle-ci traduit cette formule :
+
+$$
+(H \times \beta - r)^T \times (H \times V \times H^T)^{-1} \times (H \times \beta - r)
+$$
+
+Cela n'aide pas à la lecture... Le nouvel opérateur `@` est introduit et 
+dédié à la multiplication matricielle. Il permettra d'obtenir des expressions 
+équivalentes de la forme :
 
 ```python
 S = (H @ beta - r).T @ inv(H @ V @ H.T) @ (H @ beta - r)
@@ -226,19 +252,37 @@ Un peu mieux, non ?
 
 [^ndbp_op_matmatlab]: Par exemple, avec Matlab et Julia, `*` / `.*` servent respectivement pour la multiplication matricielle et terme à terme.
 
-### Impacte sur vos codes
+### Impact sur vos codes
 
-Cette introduction devrait être anodine pour beaucoup d'utilisateurs. En effet aucun objet de la bibliothèque standard ne va l'utiliser[^ndbp_nused]. Cet opérateur binaire sera principalement utilisé par des bibliothèques annexes, à commencer par *numpy*. 
+Cette introduction devrait être anodine pour beaucoup d'utilisateurs. En effet, 
+aucun objet de la bibliothèque standard ne va l'utiliser[^ndbp_nused]. Cet 
+opérateur binaire servira principalement pour des bibliothèques annexes, à 
+commencer par *numpy*. 
 
 [^ndbp_nused]: Ce qui est rare mais existe déjà. En particulier l'objet `Elipsis` créé avec `...`.
 
-Si vous souhaitez supporter cet opérateur, trois méthodes spéciales peuvent être implémentés : `__matmul__` et `__rmatmul__` pour la forme `a @ b` et `__imatmul__` pour la forme `a @= b`, de façon similaire aux autres opérateurs opérateurs.
+Si vous souhaitez supporter cet opérateur, trois méthodes spéciales peuvent 
+être implémentées : `__matmul__` et `__rmatmul__` pour la forme `a @ b` et 
+`__imatmul__` pour la forme `a @= b`, de façon similaire aux autres opérateurs.
 
-A noter qu'il est déconseillé d'utiliser cet opérateur pour autre chose que les multiplications matricielles.
+À noter qu'il est déconseillé d'utiliser cet opérateur pour autre chose que 
+les multiplications matricielles.
 
 ### Motivation
 
-L'introduction de cet opérateur est un modèle du genre. L'ajout de cet opérateur peut sembler très spécifique mais est pleinement justifié. La lecture de la PEP est très instructive et développé à ce sujet. Pour la faire adopté, les principales bibliothèques scientifiques en Python ont préparé cette PEP ensemble pour arriver à une solution convenant à la grande partie de la communauté scientifique, assurant dès lors l'adoption rapide de cet opérateur. La PEP précise ainsi l’intérêt et les problèmes engendrés par les autres solutions utilisés jusque là. Enfin cette PEP a été fortement appuyé par [la grande popularité de Python dans le monde scientifique](https://www.python.org/dev/peps/pep-0465/#but-isn-t-matrix-multiplication-a-pretty-niche-requirement). Ainsi on apprend que `numpy` est le module n’appartenant pas à la bibliothèque standard le plus utilisé parmit tous les codes Python présent sur Github et ce sans compter d'autres bibliothèques comme `pylab` ou `scipy` qui vont aussi profiter de cette modification et présentent parmi la liste des bibliothèques les plus communes.
+L'introduction de cet opérateur est un modèle du genre : il peut sembler très 
+spécifique mais est pleinement justifié. La lecture de la PEP, développée, est 
+très instructive. Pour la faire adopter, les principales bibliothèques 
+scientifiques en Python ont préparé cette PEP ensemble pour arriver à une 
+solution convenant à la grande partie de la communauté scientifique, 
+assurant dès lors l'adoption rapide de cet opérateur. La PEP précise ainsi 
+l’intérêt et les problèmes engendrés par les autres solutions utilisées 
+jusque-là. Enfin cette PEP a été fortement appuyée par 
+[la grande popularité de Python dans le monde scientifique](https://www.python.org/dev/peps/pep-0465/#but-isn-t-matrix-multiplication-a-pretty-niche-requirement). Ainsi on apprend que `numpy` est le module n’appartenant pas 
+à la bibliothèque standard le plus utilisé parmi tous les codes Python présents 
+sur Github et ce sans compter d'autres bibliothèques comme `pylab` ou `scipy` 
+qui vont aussi profiter de cette modification et sont présentes parmis la liste 
+des bibliothèques les plus communes.
 
 ## Annotations de types -- PEP 484
 
