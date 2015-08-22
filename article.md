@@ -365,17 +365,17 @@ Les annotations de types sont donc qu'un ensemble de conventions comme il en exi
 
 # De plus petits changements
 
- - L'ajout d'un module `zipapp` améliorant le support et la création d'applications packagés sous forme d'archive `zip` introduit dans Python 2.6. Voir a [PEP 441](http://www.python.org/dev/peps/pep-0441).
- - Le retour de l'opérateur de formatage `%` pour les types de données `byte` et `bytearray` de la même façon qu'il était utilisable pour les types chaînes (`str`) dans Python 2.7. Voir la [PEP 461](https://www.python.org/dev/peps/pep-0461/).
- - Toujours pour les types `byte` et `bytearray`, une nouvelle méthode `hex()` permet maintenant de récupérer une chaîne représentant le contenu sous forme hexadécimale. Voir le [ticket 9951](https://bugs.python.org/issue9951).
- - La suppression des fichiers `pyo`. Voir [PEP 488](https://www.python.org/dev/peps/pep-0488/).
- - Un changement de la procédure d'import des modules externes. Voir la [PEP 489](https://www.python.org/dev/peps/pep-0489/).
- - L'implémentation en C, plutôt qu'en Python, des `OrderedDict` apportant des gains de 4 à 100 sur les performances. Voir [le ticket 16991](https://bugs.python.org/issue16991).
- - Une nouvelle fonction `os.scandir()` pour itérer plus efficacement sur le contenu d'un dossier sur le disque qu'en utilisant `os.walk()`. Cette dernière fonction l'utilise maintenant en interne et est de 3 à 5 fois plus rapide sur les système POSIX et de 7 à 20 fois plus rapide sur Windows. Voir la [PEP 471](http://www.python.org/dev/peps/pep-0471).
- - L'interpréteur va maintenant automatiquement retenter le dernier appel système lorsqu'un signal `EINTR` est reçu, évitant aux codes utilisateurs de s'en occuper. Voir la [PEP 475](http://www.python.org/dev/peps/pep-0475).
- - TODO: https://docs.python.org/3.5/whatsnew/3.5.html#pep-479-change-stopiteration-handling-inside-generators
- - TODO: https://docs.python.org/3.5/whatsnew/3.5.html#pep-486-make-the-python-launcher-aware-of-virtual-environments
- - TODO: https://docs.python.org/3.5/whatsnew/3.5.html#pep-485-a-function-for-testing-approximate-equality
+ - [PEP 441](http://www.python.org/dev/peps/pep-0441) : Ajout d'un module `zipapp` améliorant le support et la création d'applications packagés sous forme d'archive `zip` introduit dans Python 2.6.
+ - [PEP 461](https://www.python.org/dev/peps/pep-0461/) : Retour de l'opérateur de formatage `%` pour les types de données `byte` et `bytearray` de la même façon qu'il était utilisable pour les types chaînes (`str`) dans Python 2.7.
+ - [PEP 488](https://www.python.org/dev/peps/pep-0488/) : La suppression des fichiers `pyo`.
+ - [PEP 489](https://www.python.org/dev/peps/pep-0489/) : Un changement de la procédure d'import des modules externes.
+ - [PEP 471](http://www.python.org/dev/peps/pep-0471) : Une nouvelle fonction `os.scandir()` pour itérer plus efficacement sur le contenu d'un dossier sur le disque qu'en utilisant `os.walk()`. Cette dernière fonction l'utilise maintenant en interne et est de 3 à 5 fois plus rapide sur les système POSIX et de 7 à 20 fois plus rapide sur Windows.
+ - [PEP 475](http://www.python.org/dev/peps/pep-0475) : L'interpréteur va maintenant automatiquement retenter le dernier appel système lorsqu'un signal `EINTR` est reçu, évitant aux codes utilisateurs de s'en occuper.
+ - [PEP 479](https://www.python.org/dev/peps/pep-0479/) : Le comportement des générateurs changent lorsqu'une exception `StopIteration` est déclenché à l'intérieur. Avec cette PEP, cette exception est transformé en `RuntimeError` plutôt que de quitter silencieusement le générateur. Cette modification cherche à faciliter le deboguage et clarifie la façon de quitter un générateur : utiliser `return` plutôt que de générer une exception. Cette PEP n'étant pas rétro-compatible, vous devez manuellement l'activer avec `from __future__ import generator_stop` pour en profiter.
+ - [PEP 485](https://www.python.org/dev/peps/pep-0485/) : Une fonction `isclose` est rajouté pour tester la "proximité" de deux nombres flottants.
+ - [PEP 486](https://www.python.org/dev/peps/pep-0486/) : Le support de `virtualenv` dans l'installateur de Python sous Windows est amélioré et simplifié. 
+ - [Ticket 9951](https://bugs.python.org/issue9951) : Pour les types `byte` et `bytearray`, une nouvelle méthode `hex()` permet maintenant de récupérer une chaîne représentant le contenu sous forme hexadécimale.
+ - [Ticket 16991](https://bugs.python.org/issue16991) : L'implémentation en C, plutôt qu'en Python, des `OrderedDict` (dictionnaires ordonnées) apportant des gains de 4 à 100 sur les performances.
 
 De plus, comme d’habitude, tout un tas de fonctions, de petites modifications et de corrections de bugs ont été apportés à la bibliothèque standard qu'il serait trop long de citer entièrement. 
 
