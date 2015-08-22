@@ -286,14 +286,80 @@ des bibliothèques les plus communes.
 
 ## Annotations de types -- PEP 484
 
-Les annotations de fonctions [existent depuis Python 3](https://www.python.org/dev/peps/pep-3107/) et permettent d'attacher des objets python quelconques aux arguments et valeur de retours des fonctions :
+Les annotations de fonctions [existent depuis Python 3](https://www.python.org/dev/peps/pep-3107/) 
+et permettent d'attacher des objets Python quelconques aux arguments  
+et à la valeur de retour d'une fonction ou d'un méthode :
 
 ```python
-def ma_fonction(param: "Mon annotation", param2: 42) -> str:
+def ma_fonction(param: str, param2: 42) -> "Mon annotation":
     pass
 ```
 
-Depuis le début, il est possible d'utiliser n'importe quels objets comme annotation et l'interpréteur les ignores totalement. C'est à la charge de l'utilisateur d'en faire une utilisation particulière. Avec Python 3.5, bien que rien 
+Depuis le début, il est possible d'utiliser n'importe quel objet valide comme 
+annotation et l'interpréteur les ignore totalement. Il est alors à la charge de 
+l'utilisateur d'en faire une utilisation particulière. Pour ce faire, il peut 
+récupérer les annotations attachées à une fonction via l'attribut 
+`__annotations__` :
+
+```python
+>>> ma_fonction.__annotations__
+{'param2': 42, 'return': 'Mon annotation', 'param': <class 'str'>}
+```
+
+Avec Python 3.5, bien que rien ne va l'obliger, les annotations deviennent réservées à "l'allusion de types" (*Type Hinting*) qui consiste à indiquer le type des arguments et retours de fonctions. Pour cela la PEP 484 vient normaliser la forme que doivent prendre ces annotations et comment elles doivent être interprétées. 
+
+```python
+# Déclaration d'une fonction qui prend en argument une chaine de caractère et en retourne une autre.
+def bonjour(nom: str) -> str:
+    return 'Zestueusement ' + nom
+```
+
+Toutefois, il ne s'agit encore que de conventions : l'interpréteur Python ne fera rien d'autre que de les stocker dans l'attribut `__annotations__`. Il ne sera même pas gêné si les annotations sont de la forme du premier exemple.
+
+Pour des indications plus complètes, un module `typing` est ajouté permetant de définir des types génériques, des tableaux, etc. 
+
+```python
+# On importe depuis le module typing :
+# - TypeVar pour définir une variable de type générique
+# - Iterable pour décrire un élément itérable
+# - Tuple pour décrire un tuple
+from typing import TypeVar, Iterable, Tuple
+
+# Nous définissons ici un type générique pouvant être un des types de nombres cités
+T = TypeVar('T', int, float, complex)
+# Vecteur représente un itérateur (list, tuple, etc.) contenant des tuples de chacun deux éléments de type T.
+Vecteur = Iterable[Tuple[T, T]]
+
+# Si nous voulions déclarer un itérable sur des tuples, sans spécifier le contenu, nous pouvons utiliser le type de base :
+# Vecteur2 = Iterable[tuple]
+# Les éléments présent dans le module typing sont là pour permettre une description plus complète des types de base.
+
+# Nous définissons une fonction prenant un vecteur en entrée et renvoyant un nombre
+def inproduct(v: Vecteur) -> T:
+    return sum(x*y for x, y in v)
+```
+
+Il serait trop long de détailler ici toutes les possibilités de ce nouveau module. Tout comme rien ne vous oblige à utiliser les annotations pour le typage, rien ne vous oblige à l'utiliser. L'interpréteur n'utilisera ni ne vérifiera toujours pas ces annotations, ne vous attendez donc pas à une augmentation de performances en utilisant les annotations de types. Leurs objectifs est de normaliser ce type d'informations pour permettre à des outils externes de les utiliser et de vous apporter des informations utiles. Les premiers bénéficiaires seront donc les EDI, les générateurs de documentations (comme [Sphinx](http://sphinx-doc.org/)) ou les analyseurs de code statiques comme [mypy](http://mypy-lang.org/) qui a fortement inspiré cette PEP et sera probablement le premier outil à proposer un support complet de cette fonctionnalité.
+
+Enfin comme ces annotations peuvent surcharger les déclarations et les rendre difficilement lisibles, les fichiers `Stub` ont été définit. Ils permettent de définir dans un fichier séparé les annotations de types permettant ainsi de profiter de ces annotations sans polluer le fichier principal. Ces fichiers permettent aussi d'annoter les fonctions de bibliotèques écrites en C ou de fournir les annotations de types pour des modules utilisant les annotations pour une autre fonctionnalitée. Par exemple voici ce à quoi pourrait ressembler un tel fichier pour le module `datetime` de la bliotèque standard :
+
+```python
+
+class date(object):
+    def __init__(self, year: int, month: int, day: int): ...
+    @classmethod
+    def fromtimestamp(cls, timestamp: int or float) -> date: ...
+    @classmethod
+    def fromordinal(cls, ordinal: int) -> date: ...
+    @classmethod
+    def today(self) -> date: ...
+    def ctime(self) -> str: ...
+    def weekday(self) -> int: ...
+```
+
+Il est important de noter qu'il est à la charge des outils de prendre en compte ces fichiers stubs : ils ne sont pas utilisés directement par l'interpréteur et ne modifieront pas les annotations du fichier d'origine (le contenu de l'attribut `__annotations__`).
+
+Les annotations de types sont donc qu'un ensemble de conventions comme il en existe déjà plusieur dans le monde Python comme la [PEP 333](https://www.python.org/dev/peps/pep-0333/) pour la comunication entre les serveurs web et les applications Python. Cet ajout n'a donc aucun impact direct sur vos codes mais permettra aux outils de vous fournir des informations supplémentaire.
 
 ## *Unpacking* généralisé -- PEP 448
 
