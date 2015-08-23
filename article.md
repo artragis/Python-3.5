@@ -253,7 +253,29 @@ Depuis le début, il est possible d'utiliser n'importe quels objets comme annota
 
 ## *Unpacking* généralisé -- PEP 448
 
-L'*unpacking* est l'opération qui permet de passer un itérable comme arguments de fonction comme si son contenu était passé élément par élément grace à l'opérateur `*` ou de passer un dictionnaire comme arguments nommés avec l'opérateur `**` :
+L'*unpacking* est une opération permetant de séparer un itérable en plusieurs 
+variables :
+
+```python
+l = (1, 2, 3, 4, 5)
+
+a, b, *c = l
+# a == 1
+# b == 2
+# c == (3, 4, 5)
+
+*d, e = c
+# d == (3, 4)
+# e == 5 
+
+f, g = d
+# f == 3
+# g == 4
+```
+
+Il est alors possible de passer un itérable comme arguments de fonction comme 
+si son contenu était passé élément par élément grace à l'opérateur `*` ou de 
+passer un dictionnaire comme arguments nommés avec l'opérateur `**` :
 
 ```python
 def spam(a, b):
@@ -261,31 +283,19 @@ def spam(a, b):
 
 l = (1, 2)
 c = spam(*l)
-# c == 3
+# c == 1 + 2 == 3
 
-d = {"a": 1, "b": 2}
+d = {"b": 1, "a": 2}
 c = spam(**d)
-# c == 3
+# c == 2 + 1 == 3
 ```
 
-L'*unpacking* permet également de séparer un itérable en plusieurs variables :
 
-```python
-l = (1, 2, 3, 4, 5)
-
-a, b, *c = l
-# a == 1, b == 2, c == (3, 4, 5)
-
-*d, e = c
-# d == (3, 4), e == 5 
-
-```
-
-Cette fonctionnalité restait jusqu'à maintenant limité et les conditions d'utilisations très strict. Deux de ces contraintes ont été levés...
+Cette fonctionnalité restait jusqu'à maintenant limitée et les conditions d'utilisations très strictes. Deux de ces contraintes ont été levées...
 
 ## Support de plusieurs *unpacking* dans les appels de fonctions
 
-Jusqu'à Python 3.4, seulement un seul itérable pouvait être utilisé lors de l'appel à une fonction. Cette restriction est maintenant levé :
+Jusqu'à Python 3.4, un seul itérable pouvait être utilisé lors de l'appel à une fonction. Cette restriction est maintenant levée :
 
 ```python
 def spam(a, b, c, d, e):
@@ -295,7 +305,7 @@ l1 = (1, 2)
 l2 = (4, 5)
 
 f = spam(*l1, 3, *l2)           # Légal en Python 3.5, impossible en Python 3.4
-# f == 1 + 2 + 3 + 4 + 5 = 15
+# f == 1 + 2 + 3 + 4 + 5 == 15
 
 d1 = {"b": 2}
 d2 = {"d": 4, "a": 1, "e": 5}
@@ -303,40 +313,62 @@ f = spam(**d1, c=3, **d2)       # Légal en Python 3.5, impossible en Python 3.4
 # f == 15
 ```
 
-Notez que si un nom de paramètre est présent dans plusieurs dictionnaires, c'est la valeur du dernier dictionnaire qui sera prise en compte. 
+Notez que si un nom de paramètre est présent dans plusieurs dictionnaires, 
+c'est la valeur du dernier dictionnaire qui sera prise en compte. 
 
 ## Support de l'*unpacking* dans les déclarations d'itérables
 
 Lorsque vous souhaitez définir un `tuple`, `list`, `set` ou `dict` litéral, il est maintenant possible d'utiliser l'*unpacking* :
 
+Avec des tuples :
+
 ```python
 a = (*range(4), 4)              # Légal en Python 3.5, impossible en Python 3.4
 # a = tuple(range(4)) + (4,)    # Equivalent Python 3.4
 # a == (0, 1, 2, 3, 4)
+```
 
+Avec des listes :
+
+```python
 b = [*range(4), 4]              # Légal en Python 3.5, impossible en Python 3.4
 # b = list(range(4)) + [4]      # Equivalent Python 3.4
 # b == [0, 1, 2, 3, 4]
+```
 
+Avec des ensembles :
+
+```python
 c = {*range(4), 4}              # Légal en Python 3.5, impossible en Python 3.4
 # c = set(range(4)) + {4}       # Equivalent Python 3.4
 # c == {0, 1, 2, 3, 4}
+```
 
+Et surtout, avec des dictionnaires :
+
+```python
 d = {'x': 1, **{'y': 2}}        # Légal en Python 3.5, impossible en Python 3.4
-# Aucun vrai équivalent en Python 3.4, en une expression. Sinon :
+# Aucun vrai équivalent en Python 3.4 en une expression. Sinon :
 # >>> d = {'x': 1}
 # >>> d.update({'y': 2})
 # d == {'x': 1, 'y': 2}
+
+# Cela permet d'ajouter des dictionnaires :
+combinaison = {**long_dict, 'b': 2}
+# Au lieu de :
+# >>> combinaison = long_dict.copy()
+# >>> combination.update({'b': 2})
 ```
 
 Cette dernière généralisation permet ainsi d'apporter une symétrie par rapport aux possibilités précédentes :
 
 ```python
-# Possible en python 3.4
+# Possible en Python 3.4
 fst, *other, lst = elems
 
 # Possible uniquement en python 3.5
-elems = fst, *other, lst
+elems = fst, *other, lst 
+# elems == (fst, *other, lst)
 ```
 
 Notez que d'autres généralisations [sont évoqués dans la PEP](https://www.python.org/dev/peps/pep-0448/#variations) qui n'ont pas été implémenté dut à un manque de popularité parmit les developpeurs de Python. Il n'est cependant pas impossible que d'autres généralisations soient introduites dans les prochaines versions.
