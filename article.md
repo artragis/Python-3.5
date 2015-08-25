@@ -2,13 +2,13 @@ Une nouvelle version du langage [Python](https://www.python.org/) (et par consé
 
 [^ndbp_date_34]: Le 16 Mars 2014 pour être précis. 
 
-# TL;DR - Résumé des nouveautés
+# TL;DR - Résumé des principales nouveautés
 
 Les plus pressés peuvent profiter de ce court résumé [des principales nouveautés](https://docs.python.org/3.5/whatsnew/3.5.html) :
 
  - [PEP 492](https://www.python.org/dev/peps/pep-0492) : les coroutines deviennent une construction spécifique du langage. Cette gestion dans l'interpréteur se fait via deux nouveaux mots-clés (`async` et `await`) et vise à compléter le support de la « programmation asynchrone » dans Python.
- - [PEP 465](http://www.python.org/dev/peps/pep-0465) : un nouvel opérateur binaire `@` est introduit pour gérer la multiplication matricielle.
- - [PEP 484](https://www.python.org/dev/peps/pep-0484/) : les annotations apposables sur les paramètres et la valeur de retour des fonctions sont maintenant standardisées et servent uniquement à préciser le type de ces éléments.
+ - [PEP 465](http://www.python.org/dev/peps/pep-0465) : l'opérateur binaire `@` est introduit pour gérer la multiplication matricielle.
+ - [PEP 484](https://www.python.org/dev/peps/pep-0484/) : les annotations apposables sur les paramètres et la valeur de retour des fonctions et méthodes sont maintenant standardisées et servent uniquement à préciser le type de ces éléments. Les annotations ne sont toujours pas utilisées par l'interpréteur et cette PEP n'est constituée que de conventions.
  - [PEP 448](https://www.python.org/dev/peps/pep-0448/) : les opérations d'*unpacking* sont généralisées et permettent maintenant d'être combinées.
 
 <--COMMENT
@@ -189,34 +189,60 @@ Si vous utilisez *asyncio*, rien ne change pour vous et vous pouvez continuer à
 
 ## Opérateur de multiplication matricielle -- PEP 465
 
-L'introduction d'un opérateur binaire n'est pas courant dans python. Aucun dans la série 3.x, le dernier ajout semble être [l'opérateur `//` dans Python 2.2](https://www.python.org/dev/peps/pep-0238/)[^ndbp_op_bin]. Regardons donc pour quels raisons celui-ci a été introduit.
+L'introduction d'un opérateur binaire n'est pas courant dans Python. 
+Aucun dans la série 3.x, le dernier ajout semble être 
+[l'opérateur `//` dans Python 2.2](https://www.python.org/dev/peps/pep-0238/)[^ndbp_op_bin]. 
+Regardons donc pour quelles raisons celui-ci a été introduit.
 
 
-[^ndbp_op_bin]: Ces ajouts sont tellement peu courant qu'il est difficile de trouver des traces de ces modifications. L'opérateur `//` semble être le seul ajout de toute la série 2.
+[^ndbp_op_bin]: Ces ajouts sont tellement peu courants qu'il est difficile de 
+trouver des traces de ces modifications. L'opérateur `//` semble être le seul 
+ajout de toute la série 2.
 
 ### Signification
 
-Ce nouvel opérateur est dédié à la multiplication matricielle. En effet, comme tous ceux qui ont fait un peu de mathématiques algébriques doivent le savoir, pour une matrice on définit généralement la multiplication par l'opération suivante (pour des matrices $2*2$ :
+Ce nouvel opérateur est dédié à la multiplication matricielle. En effet, 
+comme tous ceux qui ont fait un peu de mathématiques algébriques doivent le 
+savoir, pour une matrice on définit généralement la multiplication par 
+l'opération suivante (pour des matrices $2*2$) :
 
 $$
 \begin{pmatrix}a&b \\ c&d \end{pmatrix} \cdot \begin{pmatrix}e&f \\ g&h \end{pmatrix} = 
 \begin{pmatrix}a*e+b*g&a*f+b*h \\ c*e+d*g&c*f+d*h \end{pmatrix}
 $$
 
-or il est souvent aussi nécessaire d'effectuer des multiplications termes à termes :
+Or il est souvent aussi nécessaire d'effectuer des multiplications 
+terme à terme :
 
 $$
 \begin{pmatrix}a&b \\ c&d \end{pmatrix} * \begin{pmatrix}e&f \\ g&h \end{pmatrix} = 
 \begin{pmatrix}a*e&b*f \\ c*e&d*h \end{pmatrix}
 $$
 
-Tandis que certains langages spécialisés possèdent des opérateurs dédiés pour chacune de ces opérations[^ndbp_op_matmatlab] il n'y a en Python rien de similaire. Avec la bibliothèque [numpy](http://www.numpy.org), la plus populaire pour le calcul numérique dans l'éco-système Python, il est pour le moment nécessaire d'utiliser la méthode `dot` et d'écrire des lignes de la forme :
+Tandis que certains langages spécialisés possèdent des opérateurs dédiés pour 
+chacune de ces opérations[^ndbp_op_matmatlab] il n'y a en Python rien de 
+similaire. Avec la bibliothèque [numpy](http://www.numpy.org), la plus 
+populaire pour le calcul numérique dans l'éco-système Python, il est possible 
+d'utiliser l'opérateur natif `*` pour effectuer une multiplication terme à 
+terme, surcharge d'opérateur se rencontrant dans la plupart des bibliothèques 
+faisant intervenir les matrices. Mais il n'existe ainsi plus de moyen simple 
+pour effectuer une multiplication matricielle (l'opérateur `*` étant déjà pris). 
+Avec `numpy`, il est pour le moment nécessaire d'utiliser la méthode `dot` et 
+d'écrire des lignes de la forme :
 
 ```python
 S = (H.dot(beta) - r).T.dot(inv(H.dot(V).dot(H.T))).dot(H.dot(beta) - r)
 ```
 
-ce qui n'aide pas à la lecture... Le nouvel opérateur `@` est introduit et dédié à la multiplication matricielle. Il permettra d'obtenir des expressions équivalentes de la forme :
+Celle-ci traduit cette formule :
+
+$$
+(H \times \beta - r)^T \times (H \times V \times H^T)^{-1} \times (H \times \beta - r)
+$$
+
+Cela n'aide pas à la lecture... Le nouvel opérateur `@` est introduit et 
+dédié à la multiplication matricielle. Il permettra d'obtenir des expressions 
+équivalentes de la forme :
 
 ```python
 S = (H @ beta - r).T @ inv(H @ V @ H.T) @ (H @ beta - r)
@@ -226,30 +252,145 @@ Un peu mieux, non ?
 
 [^ndbp_op_matmatlab]: Par exemple, avec Matlab et Julia, `*` / `.*` servent respectivement pour la multiplication matricielle et terme à terme.
 
-### Impacte sur vos codes
+### Impact sur vos codes
 
-Cette introduction devrait être anodine pour beaucoup d'utilisateurs. En effet aucun objet de la bibliothèque standard ne va l'utiliser[^ndbp_nused]. Cet opérateur binaire sera principalement utilisé par des bibliothèques annexes, à commencer par *numpy*. 
+Cette introduction devrait être anodine pour beaucoup d'utilisateurs. En effet, 
+aucun objet de la bibliothèque standard ne va l'utiliser[^ndbp_nused]. Cet 
+opérateur binaire servira principalement pour des bibliothèques annexes, à 
+commencer par *numpy*. 
 
 [^ndbp_nused]: Ce qui est rare mais existe déjà. En particulier l'objet `Elipsis` créé avec `...`.
 
-Si vous souhaitez supporter cet opérateur, trois méthodes spéciales peuvent être implémentés : `__matmul__` et `__rmatmul__` pour la forme `a @ b` et `__imatmul__` pour la forme `a @= b`, de façon similaire aux autres opérateurs opérateurs.
+Si vous souhaitez supporter cet opérateur, trois méthodes spéciales peuvent 
+être implémentées : `__matmul__` et `__rmatmul__` pour la forme `a @ b` et 
+`__imatmul__` pour la forme `a @= b`, de façon similaire aux autres opérateurs.
 
-A noter qu'il est déconseillé d'utiliser cet opérateur pour autre chose que les multiplications matricielles.
+À noter qu'il est déconseillé d'utiliser cet opérateur pour autre chose que 
+les multiplications matricielles.
 
 ### Motivation
 
-L'introduction de cet opérateur est un modèle du genre. L'ajout de cet opérateur peut sembler très spécifique mais est pleinement justifié. La lecture de la PEP est très instructive et développé à ce sujet. Pour la faire adopté, les principales bibliothèques scientifiques en Python ont préparé cette PEP ensemble pour arriver à une solution convenant à la grande partie de la communauté scientifique, assurant dès lors l'adoption rapide de cet opérateur. La PEP précise ainsi l’intérêt et les problèmes engendrés par les autres solutions utilisés jusque là. Enfin cette PEP a été fortement appuyé par [la grande popularité de Python dans le monde scientifique](https://www.python.org/dev/peps/pep-0465/#but-isn-t-matrix-multiplication-a-pretty-niche-requirement). Ainsi on apprend que `numpy` est le module n’appartenant pas à la bibliothèque standard le plus utilisé parmit tous les codes Python présent sur Github et ce sans compter d'autres bibliothèques comme `pylab` ou `scipy` qui vont aussi profiter de cette modification et présentent parmi la liste des bibliothèques les plus communes.
+L'introduction de cet opérateur est un modèle du genre : il peut sembler très 
+spécifique mais est pleinement justifié. La lecture de la PEP, développée, est 
+très instructive. Pour la faire adopter, les principales bibliothèques 
+scientifiques en Python ont préparé cette PEP ensemble pour arriver à une 
+solution convenant à la grande partie de la communauté scientifique, 
+assurant dès lors l'adoption rapide de cet opérateur. La PEP précise ainsi 
+l’intérêt et les problèmes engendrés par les autres solutions utilisées 
+jusque-là. Enfin cette PEP a été fortement appuyée par 
+[la grande popularité de Python dans le monde scientifique](https://www.python.org/dev/peps/pep-0465/#but-isn-t-matrix-multiplication-a-pretty-niche-requirement). Ainsi on apprend que `numpy` est le module n’appartenant pas 
+à la bibliothèque standard le plus utilisé parmi tous les codes Python présents 
+sur Github et ce sans compter d'autres bibliothèques comme `pylab` ou `scipy` 
+qui vont aussi profiter de cette modification et sont présentes parmis la liste 
+des bibliothèques les plus communes.
 
 ## Annotations de types -- PEP 484
 
-Les annotations de fonctions [existent depuis Python 3](https://www.python.org/dev/peps/pep-3107/) et permettent d'attacher des objets python quelconques aux arguments et valeur de retours des fonctions :
+Les annotations de fonctions [existent depuis Python 3](https://www.python.org/dev/peps/pep-3107/) 
+et permettent d'attacher des objets Python quelconques aux arguments  
+et à la valeur de retour d'une fonction ou d'un méthode :
 
 ```python
-def ma_fonction(param: "Mon annotation", param2: 42) -> str:
+def ma_fonction(param: str, param2: 42) -> ["Mon", "annotation"]:
     pass
 ```
 
-Depuis le début, il est possible d'utiliser n'importe quels objets comme annotation et l'interpréteur les ignores totalement. C'est à la charge de l'utilisateur d'en faire une utilisation particulière. Avec Python 3.5, bien que rien 
+Depuis le début, il est possible d'utiliser n'importe quel objet valide comme 
+annotation. Ce qui peut surprendre, c'est que l'interpréteur n'en fait pas 
+d'utilisation particulière : il se contente de les stocker dans l'attribut 
+`__annotations__` de la fonction correspondante :
+
+```python
+>>> ma_fonction.__annotations__
+{'param2': 42, 'return': ['Mon', 'annotation'], 'param': <class 'str'>}
+```
+
+La PEP 484 introduite avec Python 3.5 fixe des conventions pour ces annotations : 
+elles deviennent réservées à « l'allusion de types » (*Type Hinting*), qui 
+consiste à indiquer le type des arguments et de la valeur de retour des 
+fonctions :
+
+```python
+# Cette fonction prend en argument une chaîne de caractères et en retourne une autre.
+def bonjour(nom: str) -> str:
+    return 'Zestueusement ' + nom
+```
+
+Toutefois, il ne s'agit encore que de conventions : l'interpréteur Python ne 
+fera rien d'autre que de les stocker dans l'attribut `__annotations__`. Il ne 
+sera même pas gêné par une annotation d'une autre forme qu'un type.
+
+Pour des indications plus complètes sur les types, un module `typing` est 
+introduit. Il permet de définir des types génériques, des tableaux, etc. Il serait 
+trop long de détailler ici toutes les possibilités de ce module, donc nous nous 
+contentons de l'exemple suivant.
+
+```python
+# On importe depuis le module typing :
+# - TypeVar pour définir un ensemble de types possibles
+# - Iterable pour décrire un élément itérable
+# - Tuple pour décrire un tuple
+from typing import TypeVar, Iterable, Tuple
+
+# Nous définissons ici un type générique pouvant être un des types de nombres cités.
+T = TypeVar('T', int, float, complex)
+# Vecteur représente un itérateur (list, tuple, etc.) contenant des tuples comportant chacun deux éléments de type T.
+Vecteur = Iterable[Tuple[T, T]]
+
+# Pour déclarer un itérable de tuples, sans spécifier le contenu de ces derniers, nous pouvons utiliser le type natif :
+# Vecteur2 = Iterable[tuple]
+# Les éléments présents dans le module typing sont là pour permettre une description plus complète des types de base.
+
+# Nous définissons une fonction prenant un vecteur en argument et renvoyant un nombre
+def inproduct(v: Vecteur) -> T:
+    return sum(x*y for x, y in v)
+
+vec = [(1, 2), (3, 4), (5, 6)]
+res = inproduct(vec)
+# res == 1 * 2 + 3 * 4 + 5 * 6 == 44
+```
+
+Néanmoins, les annotations peuvent surcharger les déclarations et les rendre 
+peu lisibles. Cette PEP a donc introduit une convention supplémentaire : les 
+fichiers `Stub`. Il a été convenu que de tels fichiers, facultifs, contiendraient 
+les annotations de types, permettant ainsi de profiter de ces informations sans 
+polluer le code source. Ces fichiers permettent aussi d'annoter les fonctions 
+de bibliothèques écrites en C ou de fournir les annotations de types pour des 
+modules utilisant les annotations pour une autre fonctionnalité. Par exemple, 
+le module `datetime` de la bliotèque standard comporterait un fichier `Stub` de
+la forme suivante.
+
+
+```python
+class date(object):
+    def __init__(self, year: int, month: int, day: int): ...
+    @classmethod
+    def fromtimestamp(cls, timestamp: int or float) -> date: ...
+    @classmethod
+    def fromordinal(cls, ordinal: int) -> date: ...
+    @classmethod
+    def today(self) -> date: ...
+    def ctime(self) -> str: ...
+    def weekday(self) -> int: ...
+```
+
+Tout comme rien ne vous oblige à utiliser les annotations pour le typage, rien 
+ne vous force à vous servir du module `typing` ou des fichiers `Stub` : 
+l'interpréteur n'utilisera ni ne vérifiera toujours pas ces annotations ; le 
+contenu des fichiers `Stub` ne sera même pas intégré à l'attribut `__annotations__`. Ne 
+vous attendez donc pas à une augmentation de performances en utilisant les 
+annotations de types : l'objectif de cette PEP est de normaliser ces informations 
+pour permettre à des outils externes de les utiliser. Les premiers bénéficiaires 
+seront donc les EDI, les générateurs de documentation (comme [Sphinx](http://sphinx-doc.org/)) 
+ou encore les analyseurs de code statiques comme [mypy](http://mypy-lang.org/), 
+lequel a fortement inspiré cette PEP et sera probablement le premier outil à 
+proposer un support complet de cette fonctionnalité.
+
+Les annotations de types sont donc qu'un ensemble de conventions, comme il en 
+existe déjà plusieurs dans le monde Python ([PEP 333](https://www.python.org/dev/peps/pep-0333/), 
+[PEP 8](https://www.python.org/dev/peps/pep-0008/), [PEP 257](https://www.python.org/dev/peps/pep-0257/), 
+etc.). Cet ajout n'a donc aucun impact direct sur vos codes mais permettra aux 
+outils externes de vous fournir du support supplémentaire.
 
 ## *Unpacking* généralisé -- PEP 448
 
@@ -291,7 +432,7 @@ passer un dictionnaire comme arguments nommés avec l'opérateur `**` :
 Cette fonctionnalité restait jusqu'à maintenant limitée et les conditions 
 d'utilisation très strictes. Deux de ces contraintes ont été levées...
 
-## Support de l'*unpacking* dans les déclarations d'itérables
+### Support de l'*unpacking* dans les déclarations d'itérables
 
 Lorsque vous souhaitez définir un `tuple`, `list`, `set` ou `dict` litéral, il 
 est maintenant possible d'utiliser l'*unpacking*.
@@ -416,7 +557,7 @@ aux possibilités précédentes.
 (1, 2, 3, 4)
 ```
 
-## Support de plusieurs *unpacking* dans les appels de fonctions
+### Support de plusieurs *unpacking* dans les appels de fonctions
 
 Cette généralisation se répercute sur les appels de fonctions ou méthodes : 
 jusqu'à Python 3.4, un seul itérable pouvait être utilisé lors de l'appel à 
@@ -448,17 +589,18 @@ fonctionnalités soient introduites dans les prochaines versions.
 
 # De plus petits changements
 
- - L'ajout d'un module `zipapp` améliorant le support et la création d'applications packagés sous forme d'archive `zip` introduit dans Python 2.6. Voir a [PEP 441](http://www.python.org/dev/peps/pep-0441).
- - Le retour de l'opérateur de formatage `%` pour les types de données `byte` et `bytearray` de la même façon qu'il était utilisable pour les types chaînes (`str`) dans Python 2.7. Voir la [PEP 461](https://www.python.org/dev/peps/pep-0461/).
- - Toujours pour les types `byte` et `bytearray`, une nouvelle méthode `hex()` permet maintenant de récupérer une chaîne représentant le contenu sous forme hexadécimale. Voir le [ticket 9951](https://bugs.python.org/issue9951).
- - La suppression des fichiers `pyo`. Voir [PEP 488](https://www.python.org/dev/peps/pep-0488/).
- - Un changement de la procédure d'import des modules externes. Voir la [PEP 489](https://www.python.org/dev/peps/pep-0489/).
- - L'implémentation en C, plutôt qu'en Python, des `OrderedDict` apportant des gains de 4 à 100 sur les performances. Voir [le ticket 16991](https://bugs.python.org/issue16991).
- - Une nouvelle fonction `os.scandir()` pour itérer plus efficacement sur le contenu d'un dossier sur le disque qu'en utilisant `os.walk()`. Cette dernière fonction l'utilise maintenant en interne et est de 3 à 5 fois plus rapide sur les système POSIX et de 7 à 20 fois plus rapide sur Windows. Voir la [PEP 471](http://www.python.org/dev/peps/pep-0471).
- - L'interpréteur va maintenant automatiquement retenter le dernier appel système lorsqu'un signal `EINTR` est reçu, évitant aux codes utilisateurs de s'en occuper. Voir la [PEP 475](http://www.python.org/dev/peps/pep-0475).
- - TODO: https://docs.python.org/3.5/whatsnew/3.5.html#pep-479-change-stopiteration-handling-inside-generators
- - TODO: https://docs.python.org/3.5/whatsnew/3.5.html#pep-486-make-the-python-launcher-aware-of-virtual-environments
- - TODO: https://docs.python.org/3.5/whatsnew/3.5.html#pep-485-a-function-for-testing-approximate-equality
+ - [PEP 441](http://www.python.org/dev/peps/pep-0441) : Ajout d'un module `zipapp` améliorant le support et la création d'applications packagés sous forme d'archive `zip` introduit dans Python 2.6.
+ - [PEP 461](https://www.python.org/dev/peps/pep-0461/) : Retour de l'opérateur de formatage `%` pour les types de données `byte` et `bytearray` de la même façon qu'il était utilisable pour les types chaînes (`str`) dans Python 2.7.
+ - [PEP 488](https://www.python.org/dev/peps/pep-0488/) : La suppression des fichiers `pyo`.
+ - [PEP 489](https://www.python.org/dev/peps/pep-0489/) : Un changement de la procédure d'import des modules externes.
+ - [PEP 471](http://www.python.org/dev/peps/pep-0471) : Une nouvelle fonction `os.scandir()` pour itérer plus efficacement sur le contenu d'un dossier sur le disque qu'en utilisant `os.walk()`. Cette dernière fonction l'utilise maintenant en interne et est de 3 à 5 fois plus rapide sur les système POSIX et de 7 à 20 fois plus rapide sur Windows.
+ - [PEP 475](http://www.python.org/dev/peps/pep-0475) : L'interpréteur va maintenant automatiquement retenter le dernier appel système lorsqu'un signal `EINTR` est reçu, évitant aux codes utilisateurs de s'en occuper.
+ - [PEP 479](https://www.python.org/dev/peps/pep-0479/) : Le comportement des générateurs changent lorsqu'une exception `StopIteration` est déclenché à l'intérieur. Avec cette PEP, cette exception est transformé en `RuntimeError` plutôt que de quitter silencieusement le générateur. Cette modification cherche à faciliter le deboguage et clarifie la façon de quitter un générateur : utiliser `return` plutôt que de générer une exception. Cette PEP n'étant pas rétro-compatible, vous devez manuellement l'activer avec `from __future__ import generator_stop` pour en profiter.
+ - [PEP 485](https://www.python.org/dev/peps/pep-0485/) : Une fonction `isclose` est rajouté pour tester la "proximité" de deux nombres flottants.
+ - [PEP 486](https://www.python.org/dev/peps/pep-0486/) : Le support de `virtualenv` dans l'installateur de Python sous Windows est amélioré et simplifié. 
+ - [Ticket 9951](https://bugs.python.org/issue9951) : Pour les types `byte` et `bytearray`, une nouvelle méthode `hex()` permet maintenant de récupérer une chaîne représentant le contenu sous forme hexadécimale.
+ - [Ticket 16991](https://bugs.python.org/issue16991) : L'implémentation en C, plutôt qu'en Python, des `OrderedDict` (dictionnaires ordonnées) apportant des gains de 4 à 100 sur les performances.
+
 De plus, comme d’habitude, tout un tas de fonctions, de petites modifications et de corrections de bugs ont été apportés à la bibliothèque standard qu'il serait trop long de citer entièrement. 
 
 Notons enfin que le support de Windows XP est supprimé (cela ne veut pas dire que Python 3.5 ne fonctionnera pas dessus, mais rien ne sera fait par les développeurs pour cela). 
