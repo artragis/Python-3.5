@@ -11,12 +11,6 @@ Les plus pressés peuvent profiter de ce court résumé [des principales nouveau
  - [PEP 484](https://www.python.org/dev/peps/pep-0484/) : les annotations apposables sur les paramètres et la valeur de retour des fonctions et méthodes sont maintenant standardisées et servent uniquement à préciser le type de ces éléments. Les annotations ne sont toujours pas utilisées par l'interpréteur et cette PEP n'est constituée que de conventions.
  - [PEP 448](https://www.python.org/dev/peps/pep-0448/) : les opérations d'*unpacking* sont généralisées et permettent maintenant d'être combinées.
 
-<--COMMENT
-
-Pour les 4 principaux thèmes, une section avec le contexte, ce que ça apporte et une note de conclusion
-
-COMMENT-->
-
 # Principales nouveautés
 
 ## Support des coroutines -- PEP 492
@@ -411,26 +405,6 @@ outils externes de vous fournir du support supplémentaire.
 De plus, comme d’habitude, tout un tas de fonctions, de petites modifications et de corrections de bugs ont été apportés à la bibliothèque standard qu'il serait trop long de citer entièrement. 
 
 Notons enfin que le support de Windows XP est supprimé (cela ne veut pas dire que Python 3.5 ne fonctionnera pas dessus, mais rien ne sera fait par les développeurs pour cela). 
-
-<--COMMENT  Si on a le temps :
-
-# Support de Python 3.5
-
-
-Support dans les IDE
-
-Support des autres implémentations.
-
-COMMENT-->
-
-
-<--COMMENT   Si ce n'est pas déjà trop long :
-
-# Point sur l'adoption de Python 3
-
-
-COMMENT-->
-
 
 # Ce que l'on peut attendre pour la version 3.6
 
