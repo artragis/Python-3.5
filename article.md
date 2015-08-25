@@ -408,19 +408,52 @@ Notons enfin que le support de Windows XP est supprimé (cela ne veut pas dire q
 
 # Ce que l'on peut attendre pour la version 3.6
 
-<--COMMENT
-Accepté pour la 3.5 mais non implémentés
+Il est impossible de savoir précisément ce qui sera disponible dans la prochaine version du langage et de l'interpréteur. 
+En effet aucune entreprise ou groupe ne décide par avance des fonctionnalités. Les changements inclus dépendent des
+propositions faites, majoritairement, sur deux *mailling list* :
 
-    PEP 431 , improved support for time zone databases
-    PEP 432 , simplifying Python's startup sequence
-    PEP 436 , a build tool generating boilerplate for extension modules
-    PEP 447 , support for __locallookup__ metaclass method
-    PEP 468 , preserving the order of **kwargs in a function
+ - *python-dev* quand cela concerne des changements interne à l'intepréteur CPython.
+ - *python-ideas* quand cela concerne des idées générale concernant le langage.
 
-ideas:
+S'en suivient une série de débat qui, si les idées sont acceptés par une majorité de developpeurs principaux, conduit
+à la rédaction d'une [PEP](https://www.python.org/dev/peps/) qui sera accepté, ou refusé, par le BDFL (Guido ou un autre
+developpeur si Guido est l'auteur de la PEP). Ainsi les PEP peuvent arriver tard. Ainsi la PEP 492 sur `async` et `await` 
+n'a été créé qu'un mois avant la sortie de la première beta de pytohn 3.5.
 
+Malgré ces incertitudes, on peut deviner quelques modifications probables...
+
+## Accepté pour la 3.5 mais non implémentés
+
+Plusieurs PEP ont déjà été accepté mais n'ont pas put être implémenté dans la version 3.5. Il est donc possible qu'elles
+soient finalement présente dans la prochaine version. Il s'agit principalement de petites fonctionnalités :
+
+ - [PEP 431](http://www.python.org/dev/peps/pep-0431) : 
+ - [PEP 432](http://www.python.org/dev/peps/pep-0432) : 
+ - [PEP 436](http://www.python.org/dev/peps/pep-0436) : 
+ - [PEP 447](http://www.python.org/dev/peps/pep-0447) : 
+ - [PEP 468](http://www.python.org/dev/peps/pep-0468) : 
+ 
+## Discussion sur les *mailling-lists*
+
+Puisque les PEP débutent généralement leurs vies sur les *mailling-lists*, on peut deviner quelques tendance en les 
+consultants. Voici une petite description des thématiques possibles.
+
+[[a]]
+| Attention cette section est beaucoup plus spéculative...
+
+### Sous-interpréteurs
+ 
 http://code.activestate.com/lists/python-ideas/34051/
-+ fstrings
+
+### Interpolation de chaines
+
+https://www.python.org/dev/peps/pep-0498/
+
+https://www.python.org/dev/peps/pep-0501/
+
+### Proprités de classes
+
+<--COMMENT
 
 
 + probablement la continuité du support de la programmation asynchrone et l'extension des coroutines
