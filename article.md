@@ -420,38 +420,58 @@ S'en suivient une série de débat qui, si les idées sont acceptés par une maj
 developpeur si Guido est l'auteur de la PEP). Ainsi les PEP peuvent arriver tard. Ainsi la PEP 492 sur `async` et `await` 
 n'a été créé qu'un mois avant la sortie de la première beta de pytohn 3.5.
 
-Malgré ces incertitudes, on peut deviner quelques modifications probables...
+Malgré ces incertitudes, on peut deviner quelques modifications probables. Attention cette section reste très spéculative...
 
-## Accepté pour la 3.5 mais non implémentés
+## Conservation de l'ordre des arguments fournies à `**kwargs` lors de l'appel aux fonctions
 
-Plusieurs PEP ont déjà été accepté mais n'ont pas put être implémenté dans la version 3.5. Il est donc possible qu'elles
-soient finalement présente dans la prochaine version. Il s'agit principalement de petites fonctionnalités :
+Cette [PEP](http://www.python.org/dev/peps/pep-0468) a déjà été accepté mais n'a pas put être implémenté dans la version 3.5. 
+Il est donc possible qu'elle soit finalement présente dans la prochaine version. L'idée est que les fonctions puissent connaitre
+l'ordre dans lequel les arguments nommés ont été passé. Prenons un exemple :
 
- - [PEP 431](http://www.python.org/dev/peps/pep-0431) : 
- - [PEP 432](http://www.python.org/dev/peps/pep-0432) : 
- - [PEP 436](http://www.python.org/dev/peps/pep-0436) : 
- - [PEP 447](http://www.python.org/dev/peps/pep-0447) : 
- - [PEP 468](http://www.python.org/dev/peps/pep-0468) : 
- 
-## Discussion sur les *mailling-lists*
+```python
+def spam(**kwargs):
+    for k, v in kwargs.items():
+        print(k, v)
 
-Puisque les PEP débutent généralement leurs vies sur les *mailling-lists*, on peut deviner quelques tendance en les 
-consultants. Voici une petite description des thématiques possibles.
+spam(a=1, b=2)
+```
 
-[[a]]
-| Attention cette section est beaucoup plus spéculative...
+Avec Python 3.5, comme toutes versions de CPython et presques toutes les autres implémentations (sauf PyPy), nous ne pouvons
+pas savoir si le résultat sera :
 
-### Sous-interpréteurs
+```
+a 1
+b 2
+```
+
+ou 
+
+
+```
+b 2
+a 1
+```
+
+En effet un dictionnaire est utilisé pour passer les arguments. Or ceux-ci ne garantissent l'ordre d'itération. Pourtant
+Python dispose d'un [`OrderedDict`](https://docs.python.org/3/library/collections.html#collections.OrderedDict) depuis 
+Python 3.1. L'implémentation de cette PEP se résumerait donc de remplacer l'objet utilisé en interne d'un dictionnaire à
+un dictionnaire ordonné. Cependant jusqu'à maintenant cet objet était définit en Python. L'implémentation était donc loin
+d'être la plus efficace possible et ne pouvait pas être utilisé pour un élément aussi critique du langage. C'est pour cette
+raison que l'implémentation a été refaite en C pour python 3.5 comme noté dans la section "De plus petits changements". 
+Maintenant plus rien ne semble bloqué l'implémentation de cette PEP qui devrait donc voir le jour dans Python 3.6.
+
+
+## Sous-interpréteurs
  
 http://code.activestate.com/lists/python-ideas/34051/
 
-### Interpolation de chaines
+## Interpolation de chaines
 
 https://www.python.org/dev/peps/pep-0498/
 
 https://www.python.org/dev/peps/pep-0501/
 
-### Proprités de classes
+## Proprités de classes
 
 <--COMMENT
 
