@@ -695,16 +695,59 @@ et l'auteur est actuellement en train de préparer une PEP à ce sujet.
 
 ## Interpolation de chaines
 
-https://www.python.org/dev/peps/pep-0498/
+Les interpolations directs de chaines de caractèrent existent dans de nombreux langages : PHP, C#, Ruby, Swift, Perl, etc.
+Un exemple en Perl est par exemple :
 
-https://www.python.org/dev/peps/pep-0501/
+```perl
+my $a = 1;
+my $b = 2;
 
+print "Resultat = a + b = $a + $b = @{[$a+$b]}\n";
+# Imprime "Resultat = a + b = 1 + 2 = 3"
+```
 
-<--COMMENT
+Il n'existe pas d'équivalents directs en Python, le plus proche pourrait ressembler à l'exemple suivant :
 
+```python
+a, b = 1, 2
 
-+ probablement la continuité du support de la programmation asynchrone et l'extension des coroutines
+print("Resultat = a + b = %d + %d = %d" % (a, b, a + b))
+# ou
+print("Resultat = a + b = {a} + {b} = {c}".format(a=a, b=b, c=a + b))
+```
 
-+ suivre https://www.python.org/dev/peps/pep-0494/ pour les pep acceptés et dates quand connues
+Nous voyons ainsi qu'il est necessaire de passer explicitement les variables et, même si il est possible d'utiliser 
+`locals()` ou `globals()` pour s'en passer, il reste impossible d'évaluer une expression, comme ici l'addition, ailleurs 
+qu'à l'exterieur de la chaine de caractère. 
 
-COMMENT-->
+La première proposition effectué, formalisé par le [PEP 498](https://www.python.org/dev/peps/pep-0498/) propose de rajouter
+cette possibilité dans python gràce à un nouveau préfixe de chaine, `f` pour `format-string`, dont voici un exemple 
+d'utilisation issue de la PEP :
+
+```python
+>>> import datetime
+>>> name = 'Fred'
+>>> age = 50
+>>> anniversary = datetime.date(1991, 10, 12)
+>>> f'My name is {name}, my age next year is {age+1}, my anniversary is {anniversary:%A, %B %d, %Y}.'
+'My name is Fred, my age next year is 51, my anniversary is Saturday, October 12, 1991.'
+>>> f'He said his name is {name!r}.'
+"He said his name is 'Fred'."
+```
+
+Cette proposition a fait des émules. Plusieurs développeurs ont mit en évidence que la méthodes d'interpolation peut 
+dépendre du contexte. Par exemple un module de base de donnée comme [`sqlite3`](https://docs.python.org/3.4/library/sqlite3.html)
+propose un système de substitution personnalisé pour éviter les attaques par injection ou encore les moteurs de *templates* pour 
+produire du HTML vont aussi faire des substitutions pour échapper certains caractères comme remplacer `<` ou `>` par, 
+respectivement, `&lt;` ou `&gt;`. La [PEP 501](https://www.python.org/dev/peps/pep-0501/) propose aux developpeurs de définir
+leurs propre méthodes d'interpolations adapté au contexte.
+
+Guido c'est clairement prononcé pour la première proposition afin qu'elle soit implémenté dans Python 3.6. La deuxième est
+plus générale mais plus complexe et peu ainsi poser plusieurs problèmes. Aucune décision n'a encore été prise et les débats
+à ce sujet on encore lieu sur la *mailling list* concernant cette possibilité et la forme qu'elle pourrait prendre. Il est
+donc très probable qu'au moins la première proposition soit implémenté. La deuxième dépendra de la suite des discussions
+mais, à défaut de consensus, les *f-string* simples seront implémentées dans Python 3.6.
+
+-------
+
+TODO: Conclusion général
