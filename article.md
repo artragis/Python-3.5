@@ -296,83 +296,43 @@ d'utilisation très strictes. Deux de ces contraintes ont été levées...
 Lorsque vous souhaitez définir un `tuple`, `list`, `set` ou `dict` litéral, il 
 est maintenant possible d'utiliser l'*unpacking*.
 
-<table>
-<tr>
-<td>Python 3.4</td>
-<td>Python 3.5</td>
-</tr>
-<tr>
-<td>
 ```python
+# Python 3.4
 >>> tuple(range(4)) + (4,)
 (0, 1, 2, 3, 4)
-```
-</td>
-<td>
-```python
+# Python 3.5
 >>> (*range(4), 4)
 (0, 1, 2, 3, 4)
-```
-</td>
-</tr>
-<tr>
-<td>
-```python
+
+# Python 3.4
 >>> list(range(4)) + [4]
 [0, 1, 2, 3, 4]
-```
-</td>
-<td>
-```python
+# Python 3.5
 >>> [*range(4), 4]
 [0, 1, 2, 3, 4]
-```
-</td>
-</tr>
-<tr>
-<td>
-```python
+
+# Python 3.4
 >>> set(range(4)) + {4}
 set(0, 1, 2, 3, 4)
-```
-</td>
-<td>
-```python
+# Python 3.5
 >>> {*range(4), 4}
 set(0, 1, 2, 3, 4)
-```
-</td>
-</tr>
-<tr>
-<td>
-```python
+
+# Python 3.4
 >>> d = {'x': 1}
 >>> d.update({'y': 2})
 >>> d
 {'x': 1, 'y': 2}
-```
-</td>
-<td>
-```python
+# Python 3.5
 >>> {'x': 1, **{'y': 2}}
 {'x': 1, 'y': 2}
-```
-</td>
-</tr>
-<tr>
-<td>
-```python
+
+# Python 3.4
 >>> combinaison = long_dict.copy()
 >>> combination.update({'b': 2})
-```
-</td>
-<td>
-```python
+# Python 3.5
 >>> combinaison = {**long_dict, 'b': 2}
 ```
-</td>
-</tr>
-</table>
 
 Notamment, il devient maintenant facile de sommer des itérables pour en former 
 un autre.
