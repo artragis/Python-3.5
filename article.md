@@ -422,6 +422,29 @@ n'a été créé qu'un mois avant la sortie de la première beta de pytohn 3.5.
 
 Malgré ces incertitudes, on peut deviner quelques modifications probables. Attention cette section reste très spéculative...
 
+## Continuité des changements introduits dans Python 3.5
+
+Trois thématiques de modifications, amorcés dans Python 3.4 et surtout Pytohn 3.5 pourraient être de nouveau source d'ajouts
+important dans Python 3.6 :
+
+ - La programmation asynchrone avec *asyncio* et les coroutines
+ - Les indications de types
+ - La généralisation de l'*unpacking*
+ 
+Les deux premiers éléments sont officiellement en attente de retours de la part des utilisateur de Python les utilisant. 
+Les développeurs de l'interpréteurs attendent de connaitre les problèmes et limitations rencontré en utilisant ces 
+fonctionnalités pour les peaufiner dans les premières versions. Déjà quelques remarques ont été faite comme 
+[la complexité de méler des fonctions synchrones et asynchrone](http://code.activestate.com/lists/python-ideas/34419/).
+Python 3.6 devrait donc logiquement voir des améliorations dans ces deux sections en profitant des retours.
+
+La généralisation de l'*unpacking* pourrait elle aussi continuer. Dans un premier temps la 
+[PEP 448](https://www.python.org/dev/peps/pep-0448/#variations) proposait initialement plus de généralisation qui n'ont 
+pas été retenu pour Pytohn 3.5 par manque de temps pour trouver un concensus ou étudier les problèmes possés par ces 
+modifications de syntaxe. Elles seront donc propablement rapidement re-discuté. De plus, ces ajouts dans Python 3.5 a 
+donné des idées à d'autres développeurs et quelques [nouvelles modifications](http://code.activestate.com/lists/python-ideas/35074/)
+ont été déjà proposés.
+
+
 ## Conservation de l'ordre des arguments fournies à `**kwargs` lors de l'appel aux fonctions
 
 Cette [PEP](http://www.python.org/dev/peps/pep-0468) a déjà été accepté mais n'a pas put être implémenté dans la version 3.5. 
