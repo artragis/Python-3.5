@@ -496,8 +496,49 @@ en attendant qu'un des developpeurs de CPython l'implémente dans le coeur de l'
 l'une des première nouvelle fonctionnalité confirmé pour la version 3.6.
 
 ## Sous-interpréteurs
- 
-http://code.activestate.com/lists/python-ideas/34051/
+
+L'écriture de codes concurent en Python est toujours un sujet chaud. A ce jour trois solutions existent dans la 
+bibliotèque standard :
+
+ - *asyncio* bien que limiter à un seul *thread*, il permet d'écrire des coroutine s'excutant en concurence en tirant 
+ partie des temps d'attentes introduits par les entrées/sorties.
+ - *threading* qui permet de facilement executer du code sur plusieurs *thread* mais qui restent limiter à un seul 
+ coeur de processeur à cause du [GIL](https://en.wikipedia.org/wiki/Global_Interpreter_Lock)[^ndbp_gil].
+ - *multiprocessing* en *forkant* l'interpréteur permet d'éxecuter plusieurs codes Python en parralèle sans limitation
+ et exploitant pleinnement les ressources calculatoir des processeurs.
+
+La multiplicité des solutions ne résouds pas tout. En effet les limitation des *threads* en python les rendent inutile
+quand le traitement ce fait principalement sur le processeur. L'utilisation de processus est alors possible mais a un 
+cout :
+
+ - Le lancement d'un process entraine un *fork* au niveau du système d'exploitation, ce qui prend plus de temps et de 
+ mémoire que lancement d'un *thread* qui est lui presque gratuit à ce niveau.
+ - La communication entre les processus est aussi plus longue. Tandis que les *thread* permetent de partager la mémoire,
+ rendant les communcations direct, les processus necessitent de mettre en places des mecanismes complexes, appelés 
+ [*IPC* pour "communications inter-processus"](https://fr.wikipedia.org/wiki/Communication_inter-processus).
+
+[Une proposition sur *python-ideas*](http://code.activestate.com/lists/python-ideas/34051/) a été formulé au début de 
+l'été pour offrir une nouvelle solution intermédiare entre les *threads* et les *process*, des sous-interpréteurs 
+(*subinterpreters*), en espérant que cela puisse définitvement contenter les développeurs écrivants des codes concurents.
+
+A partir d'un nouveau module *subinterpreters*, reprendant l'interface exposé par les modules *threading* et *multiprocessing*,
+CPython permettrait de lancer dans des *threads* différents interpréteurs, chacun chargé d'executer un code Python. Le fait
+que ce soit des *threads* qui soient utilisé rendrait ce module beaucoup plus leger à utiliser que *multiprocessing*. 
+L'interpréteur se chargerait de lancer ces *threads* et partagerait le maximum de l'implémentation de l'interpréteur.
+Le plus interessant est que ce mécanisme ferait "disparaitre" le *GIL*. En effet chaque sous-interpréteur disposeraient
+d'un espace de nom de propre et indépendant. Chacun aurait donc un *GIL* mais ceux-ci seraient indépendants. D'un point 
+de l'ensemble, la majorité des opérations transformeraient le *GIL* en *LIL* : *Local interpreter lock*. Chaque 
+sous-interpréteur pourrait ainsi fonctionner sur un coeur du processus séparré sans aucun problèmes, permetant de tirer
+pleinnement partie des processeurs modernes. Enfin il faut savoir que CPython possède déjà en interne la notion de 
+sous-interpréteurs en interne, le travail a réaliser consciterai donc à exposer ce code C pour le rendre disponible 
+en Python.
+
+Evidement cette proposition n'est pas une solution miracle. Tout n'est pas si simple et beaucoup d'élements doivent encore
+être discutés. En particulier les moyens de communications entre les sous-interpréteurs (probablemens via des queues comme
+pour *multiprocessing*) et tout un tas de petits détails d'implémentations. Mais la proposition a reçu un acceuil très positif
+et l'auteur est actuellement en train de préparer une PEP à ce sujet.
+
+[^ndbp_gil]: *Global Interpreter Lock*
 
 ## Interpolation de chaines
 
