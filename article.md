@@ -460,6 +460,17 @@ d'être la plus efficace possible et ne pouvait pas être utilisé pour un élé
 raison que l'implémentation a été refaite en C pour python 3.5 comme noté dans la section "De plus petits changements". 
 Maintenant plus rien ne semble bloqué l'implémentation de cette PEP qui devrait donc voir le jour dans Python 3.6.
 
+## Proprités de classes
+
+Toujours dans les petites modifications, un nouveau décorateur disponible de base devrait être introduit : `@classproperty`.
+Si vous connaissez le modèle objet de Python, son nom devrait vous suffir pour deviner son but : permettre de définir des
+propriétés au niveau de classes.
+
+Cet ajout a été proposé sur la *mailling-list python-ideas*. La mise en place d'une implémentation propre et complète de 
+ce comportement est compliqué sans définir une méta-classe. Une solution générique implique donc de le rajouter dans le 
+modèle objet de Python. Guido a rapidement donné son aprobation et un [ticket a été créé](http://bugs.python.org/issue24941)
+en attendant qu'un des developpeurs de CPython l'implémente dans le coeur de l'intrépreteur. Cela pourrait donc être
+l'une des première nouvelle fonctionnalité confirmé pour la version 3.6.
 
 ## Sous-interpréteurs
  
@@ -471,7 +482,6 @@ https://www.python.org/dev/peps/pep-0498/
 
 https://www.python.org/dev/peps/pep-0501/
 
-## Proprités de classes
 
 <--COMMENT
 
