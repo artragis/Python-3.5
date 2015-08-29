@@ -604,15 +604,17 @@ Il est impossible de savoir précisément ce qui sera disponible dans la prochai
 En effet aucune entreprise ou groupe ne décide par avance des fonctionnalités. Les changements inclus dépendent des
 propositions faites, majoritairement, sur deux *mailling list* :
 
- - *python-dev* quand cela concerne des changements interne à l'intepréteur CPython.
- - *python-ideas* quand cela concerne des idées générale concernant le langage.
+ - [*python-dev*](https://mail.python.org/mailman/listinfo/python-dev) quand cela concerne des changements interne à l'intepréteur CPython.
+ - [*python-ideas*](https://mail.python.org/mailman/listinfo/python-ideas) quand cela concerne des idées générale concernant le langage.
 
 S'en suivient une série de débat qui, si les idées sont acceptés par une majorité de developpeurs principaux, conduit
 à la rédaction d'une [PEP](https://www.python.org/dev/peps/) qui sera accepté, ou refusé, par le BDFL (Guido ou un autre
-developpeur si Guido est l'auteur de la PEP). Ainsi les PEP peuvent arriver tard. Ainsi la PEP 492 sur `async` et `await` 
+developpeur si Guido est l'auteur de la PEP). En l'absence de feuilles de routes définit à l'avance, les PEP peuvent 
+arriver tard dans le cycle de développement. Ainsi la PEP 492 sur `async` et `await` 
 n'a été créé qu'un mois avant la sortie de la première beta de pytohn 3.5.
 
-Malgré ces incertitudes, on peut deviner quelques modifications probables. Attention cette section reste très spéculative...
+[[a]]
+| Malgré ces incertitudes, on peut deviner quelques modifications probables. Attention cette section reste très spéculative...
 
 ## Continuité des changements introduits dans Python 3.5
 
@@ -625,9 +627,9 @@ important dans Python 3.6 :
  
 Les deux premiers éléments sont officiellement en attente de retours de la part des utilisateur de Python les utilisant. 
 Les développeurs de l'interpréteurs attendent de connaitre les problèmes et limitations rencontré en utilisant ces 
-fonctionnalités pour les peaufiner dans les premières versions. Déjà quelques remarques ont été faite comme 
+fonctionnalités pour les peaufiner dans les prochaines versions. Python 3.6 devrait donc logiquement voir des améliorations 
+dans ces deux sections en profitant des retours. Déjà quelques remarques ont été faite comme 
 [la complexité de méler des fonctions synchrones et asynchrone](http://code.activestate.com/lists/python-ideas/34419/).
-Python 3.6 devrait donc logiquement voir des améliorations dans ces deux sections en profitant des retours.
 
 La généralisation de l'*unpacking* pourrait elle aussi continuer. Dans un premier temps la 
 [PEP 448](https://www.python.org/dev/peps/pep-0448/#variations) proposait initialement plus de généralisation qui n'ont 
@@ -675,11 +677,60 @@ d'être la plus efficace possible et ne pouvait pas être utilisé pour un élé
 raison que l'implémentation a été refaite en C pour python 3.5 comme noté dans la section "De plus petits changements". 
 Maintenant plus rien ne semble bloqué l'implémentation de cette PEP qui devrait donc voir le jour dans Python 3.6.
 
+Le principal intérêt de cette modification est que le fonctionnement actuel est contre intuitif pour bon nombre d'utilisateurs
+connaissant mal le fonctionnement interne de Python. D'autres raisons sont invoqués dans la PEP :
+
+ - De manière évidente les `OrederedDict` pourraient maintenant être créées en utilisant des arguments nommés, comme les
+   dictionnaires.
+ - La sérialization : dans certains formats l'ordre d'apparition des données à de l'importance (ex: l'ordre des colonnes
+   dans un fichier CSV). Cette nouvelle possibilité permettrait de les définir plus facilement en même temps que des 
+   valeurs par defaults. Elle permettrait aussi à des formats comme XML, Json ou Yaml de garantir l'ordre d'apparition
+   des attributs ou clés qui sont enregistrés dans les fichiers.
+ - Le debuggage : le fonctionnement actuel pouvant être aléatoire, il peut être compliqué de reproduire certains bugs. 
+   Si un bug apparait selon l'ordre de définition des arguments, le nouveau comportement facilitera leur correction.
+ - La priorité à donner aux arguments pourrait être spécifier selon l'ordre de leur déclaration.
+ - Les `namedtuple` pourraient être définit avec une valeur par défaut simplement.
+
+et probablement d'autres utilisations qui n'ont pas encore été envisagées.
+
 ## Proprités de classes
 
 Toujours dans les petites modifications, un nouveau décorateur disponible de base devrait être introduit : `@classproperty`.
 Si vous connaissez le modèle objet de Python, son nom devrait vous suffir pour deviner son but : permettre de définir des
-propriétés au niveau de classes.
+propriétés au niveau de classes. Par exemple si vous souhaitez conserver au niveau de la class le nombre d'instances 
+créées et des statistiques sur vos appels:
+
+```python
+class Spam:
+    _n_instance_created = 0
+    _n_egg_call = 0
+    
+    def __init__(self):
+        self.__class__._n_instance_created += 1
+    
+    def egg(self):
+        print("egg")
+        self.__class__._n_egg_call += 1
+    
+    @classproperty
+    def mean_egg_call(cls):
+        return (cls._n_egg_call / cls._n_instance_created) if cls._n_instance_created > 0 else 0
+
+spam = Spam()
+
+spam.egg()
+spam.egg()
+spam.egg()
+
+print(spam.mean_egg_call)   # => 3
+
+spam2 = Spam()
+
+# Les 3 expressions suivantes sont équivalentes
+print(spam.mean_egg_call)    # => 1.5
+print(spam2.mean_egg_call)   # => 1.5
+print(Spam.mean_egg_call)    # => 1.5  , propriété au niveau de la class !
+```
 
 Cet ajout a été proposé sur la *mailling-list python-ideas*. La mise en place d'une implémentation propre et complète de 
 ce comportement est compliqué sans définir une méta-classe. Une solution générique implique donc de le rajouter dans le 
@@ -700,8 +751,8 @@ bibliotèque standard :
  et exploitant pleinnement les ressources calculatoir des processeurs.
 
 La multiplicité des solutions ne résouds pas tout. En effet les limitation des *threads* en python les rendent inutile
-quand le traitement ce fait principalement sur le processeur. L'utilisation de processus est alors possible mais a un 
-cout :
+quand le traitement ce fait principalement sur le processeur. L'utilisation de *multiprocessing* est alors possible mais 
+a un cout :
 
  - Le lancement d'un process entraine un *fork* au niveau du système d'exploitation, ce qui prend plus de temps et de 
  mémoire que lancement d'un *thread* qui est lui presque gratuit à ce niveau.
