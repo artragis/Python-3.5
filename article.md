@@ -21,72 +21,126 @@ COMMENT-->
 
 ## Support des coroutines -- PEP 492
 
-[[i]]
-| Bien qu'étant un concept général pouvant être utilisé pour de nombreuses applications, les *coroutines* en Python sont fortement liés paradigme de la programmation dite "asynchrone". C'est pour simplifier le développement d'applications de ce type qu'elles sont introduites et c'est dans ce cadre que nous présenterons cet ajout. Il n'est malheureusement pas possible de tout détailler dans cet article. Cette section donc peut nécessiter que vous ayez quelques notions de *programmation asynchrone* pour bien comprendre cette nouveauté.
-
 ### Contexte
 
-#### Description rapide de la "programmation asynchrone"
+#### Introduction à la programmation asynchrone
 
-De nombreuses applications necessitent de faire des opérations en parralèle. Un serveur web par exemple va recevoir des requêtes provenant de chaque client (votre navigateur) connecté au site. A chaque demande de page le serveur doit évaluer et retourner un résultat : la page qui s'affichera chez vous. Mais plusieurs personnes peuvent être connectés simultanément. Il faut donc traiter les réponses le plus rapidement possible, et si possible en même temps, pour que l'utilisateur ai une réponse le plus rapidement possible. Il existe plusieurs façon d'effectuer des opérations de manière concurente (*thread*, processus, etc.). La *programmation asynchrone* en est une autre qui permet de maximiser l'efficacité du traitement dans un programme sur un seul *thread*.
-
-Prenons un exemple simple d'une application chargé de télécharger le contenu de la page d’accueil de *zeste de savoir* et l'enregistrer sur le disque par morceau de 512 octets en utilisant la bibliothèque [*requests*]()
+Pour comprendre ce qu'est la programmation asynchrone, penchons-nous sur l'exemple 
+de code suivant, chargé de télécharger le contenu de la page d’accueil de 
+*Zeste de Savoir* et de l'enregistrer sur le disque par morceau de 512 octets 
+en utilisant la bibliothèque [requests](http://www.python-requests.org/en/latest/).
 
 ```python
 import requests
 
 def fetch_page(url, filename, chunk_size=512):
     
-    # Nous effectuons une requete au serveur
+    # Nous effectuons une demande de connexion au serveur HTTP et attendons sa réponse
     response = requests.get(url, stream=True)
     
-    # Nous vérifions que le serveur nous répond correctement
+    # Nous vérifions qu'il n'y a pas eu d'erreur lors de la connexion 
     assert response.status_code == 200
     
-    # Nous ouvrons le fichier de sortie
+    # Nous ouvrons le fichier d'écriture
     with open(filename, mode='wb') as fd:
         
-        # Nous récupérons le fichier par morceau...
+        # Nous récupérons le fichier de la page d'accueil par morceaux : à chaque 
+        # tour de boucle, nous demandons un paquet réseau au serveur et attendons 
+        # qu'il nous le donne
         for chunk in response.iter_content(chunk_size=chunk_size):
             
-            # Et nous l'enregistrons par morceau
+            # Nous écrivons dans le fichier de sortie, sur le disque 
             fd.write(chunk)
                 
 if __name__ == "__main__":
     fetch_page('http://zestedesavoir.com/', 'out.html')
 ```
 
-Dans ce genre de fonction très simple votre processeur passe son temps... à ne rien faire ! Pour comprendre regardons ce qui se passe, détaillons l'exemple. Le processeur ne fait rien :
+Lors d'un appel à ce genre de fonction très simple votre processeur passe son temps... à ne 
+rien faire ! En effet, quand il n'attend pas le serveur Web, il patiente le temps 
+que le disque effectue les opérations d'écriture demandées. Or tout cela est très 
+lent à l'échelle d'un processeur. Et tous ces appels à des services extérieurs 
+sont très courants en Web : connexion et requêtes à une base de données, appels à 
+une API externe, etc. La perte de temps est de ce fait considérable.
 
- - **Ligne 6** : tant que la connection n'est pas établie,
- - **ligne 12** : tant que le fichier n'est pas créé,
- - **ligne 15** : pendant que le contenu se télécharge,
- - **ligne 18** : le temps d'écrire le contenu dans le fichier,
+La programmation dite **asynchrone** cherche à résoudre ce problème en permettant 
+au développeur d'indiquer les points où la fonction attend un service extérieur 
+(base de données, serveur Web, disque dur, etc.), appelé *entrées/sorties* (en 
+anglais : *io*). Le programme principal peut ainsi faire autre chose pendant ce 
+temps, comme traiter la requête d'un autre client. Pour cela une boucle 
+évenementielle est utilisée. Le coeur de l'application est alors une fonction 
+qu'on pourrait résumer par les opérations suivantes :
 
-Or ces lignes représentent tout ce que fait la fonction ou presque. Cela veut donc dire que le processeur passe son temps à attendre. Ce types de fonctions bloquantes concernent principalement les *entrées/sorties*, c'est à dire quand il est necessaire de communiquer avec autre chose que la mémoire vive de votre ordinateur. Du point de vue du processeur un disque dur est lent comme une tortue. Et la vitesse du réseau nécéssaire au téléchargement des fichiers est encore beaucoup plus lent. Or ce type d'opérations est très courant sur des applications web : les connections aux bases de données ou les requetes à d'autres services web sont des opérations d'entrées/sorties très courantes et pourtant très longue. Avec un code de ce type, votre processeur va perdre énormément de temps à attendre, sans rien faire. La "programmation asynchrone" cherche à résoudre se problème en laissant le soin au développeur de prévenir quand une fonction doit attendre un résultat et laisser ainsi le programme principal faire autre chose pendant ce temps, comme traiter une autre requête. Pour cela une boucle évenementielle est utilisé. Le coeur de l'application est alors une fonction qu'on pourrait résumer par les opérations suivantes :
+ 1. Prendre une tâche disponible
+ 2. Exécuter la tâche jusqu'à ce qu'elle soit terminée ou qu'elle doive attendre des entrées/sorties
+ 3. Dans le second cas, la mettre dans une liste de tâches en attente
+ 4. Mettre les tâches en attente ayant reçu leurs données dans la liste des tâches disponibles
+ 5. Retourner en 1
 
- 1. Prendre une tache disponible
- 2. Lancer la tache jusqu'à ce qu'elle soit terminé ou qu'elle doivent attendre des entrées/sorties
- 3. Si la tache n'est pas terminé, c'est-à-dire qu'elle doit attendre des entrées/sorties, la mettre dans une liste de tache en attente.
- 4. Regarder si certaines taches en attente ont reçu leur données. Si oui, les mettre dans la liste des taches disponible pour être continués
- 5. Retourner en 1.
+Prenons un exemple, avec un serveur Web :
 
-En découpant une fonction par morceaux, la boucle peut en executer un autre pendant que les longues opérations d'entrées/sorties se déroulent à l'extérieure...
+- Un client A demande une page, appelant ainsi une fonction f
+- Un client B demande une page, appelant une autre fonction g, appel mis en attente vu que le processeur est occupé avec le client A
+- L'appel à f atteint une écriture dans un fichier, et se met en pause le temps que le disque fasse son travail
+- g est démarrée
+- L'écriture sur le disque de f est terminée
+- g atteint une demande de connexion à la base de données et se met en pause le temps que la base réagisse
+- L'appel à f est poursuivi et terminé
+- Un client C demande une page
+- etc.
+
+En découpant une fonction par morceaux, la boucle peut en exécuter un pendant 
+que les longues opérations d'entrées/sorties d'un autre morceau se déroulent à 
+l'extérieur...
 
 [[i]]
-| Nous faisons aussi naturellement ça dans la vie. Par exemple si vous effectuez un rapport qui doit être relu par votre chef. Après âtre allé lui donner une première version, vous allez devoir attendre qu'il l'ai relu avant de pouvoir le corriger. Vous pouvez bien sûrs dormir en attendant mais vous serez plus efficace en préparerant vos vacances ou vos prochaines sorties durant l'attente. Vous pourrez ainsi reprendre lorsqu'il sera revenu sans avoir perdu votre temps.
+| Nous nous comportons naturellement de cette manière dans la vie. Par exemple, 
+si vous effectuez un rapport que vous devez faire relire à votre chef : après 
+lui avoir fait parvenir une première version, vous allez devoir attendre qu'il 
+l'ait étudié avant de le corriger ; plutôt que de patienter bêtement devant son 
+bureau, vous vaquez à vos occupations, et serez informé lorsque le rapport pourra 
+être repris.
 
-#### La "programmation asynchrone" en Python
+#### La programmation asynchrone en Python
 
-Remise récemment à la mode suite à la grande popularité acquise par [node.js](https://nodejs.org/), la "programmation asynchrone" est possible depuis de nombreuses années en Python, notamment pour créer des applications web, grâce à certaines bibliothèques : [Twisted](https://twistedmatrix.com/trac/) existe depuis 12 ans (2002), [Tornado](http://www.tornadoweb.org/en/stable/) a été libéré par [FriendFeed](http://blog.friendfeed.com/) il y a 6 ans (2009) au même moment où le développement de [gevent](http://www.gevent.org/) commençait.
+La programmation asynchrone a été remise récemment au goût du jour par 
+[Node.js](https://nodejs.org/). Mais Python n'est pas en reste, avec de multiples 
+bibliothèques pour gérer ce paradigme : [Twisted](https://twistedmatrix.com/trac/) 
+existe depuis 13 ans (2002), [Tornado](http://www.tornadoweb.org/en/stable/) a 
+été libérée par [FriendFeed](http://blog.friendfeed.com/) il y a 6 ans (2009), 
+à l'époque où le développement de [gevent](http://www.gevent.org/) commençait.
 
-Comme nous l'ons dit, la possibilité d'utiliser une boucle d’événements pour ordonnancer les opérations et ne pas bloquer le *thread* principal de l'application durant les opérations d'entrées et sorties est particulièrement utile pour la réalisation d'applications web. Cette popularité récente a poussé [Guido van Rossum](https://fr.wikipedia.org/wiki/Guido_van_Rossum), créateur et BDFL[^ndbp_bdfl] de Python, à standardiser cette approche en synthétisant les idées des bibliothèques populaires précédemment citées et de proposer une implémentation typique dans la bibliothèque standard : c'est le module [asyncio](https://docs.python.org/3/library/asyncio.html) disponible depuis Python 3.4. Ce module n'a pas pour but de remplacer les bibliothèques cités précédemment mais de proposer une implémentation standardisée d'une boucle événementielle et de mettre à disposition quelques fonctionnalités bas niveaux (*Tornado* peut ainsi [être utilisé avec asyncio](http://tornado.readthedocs.org/en/latest/asyncio.html)). 
+Au moment de la version 3.4 de Python, [Guido van Rossum](https://fr.wikipedia.org/wiki/Guido_van_Rossum), 
+créateur et BDFL du langage, a décidé de standardiser cette approche 
+en synthétisant les idées des bibliothèques populaires précédemment citées et 
+d'intégrer une implémentation typique dans la bibliothèque standard : c'est le 
+module [asyncio](https://docs.python.org/3/library/asyncio.html). Ce dernier n'a 
+pas pour but de remplacer les bibliothèques mentionnées, mais de proposer 
+une implémentation standardisée d'une boucle événementielle et de mettre à 
+disposition quelques fonctionnalités bas niveau (*Tornado* peut ainsi 
+[être utilisé avec asyncio](http://tornado.readthedocs.org/en/latest/asyncio.html)). 
 
-[^ndbp_bdfl]: *"Benevolent Dictator for Life"* ("dictateur bienveillant à vie")
+*[BDFL]: *Benevolent Dictator for Life* (dictateur bienveillant à vie)
 
-Tandis que *node.js*, par exemple, utilise ce qu'on appelle des "fonctions de rappel" (*callback*) pour ordonnancer les différentes étapes d'un algorithme, Python et *asyncio* utilisent eux des coroutines permettant d'écrire des fonctions asynchrones "qui ressemblent" à des fonctions procédurales.  Les [coroutines](https://fr.wikipedia.org/wiki/Coroutine) ressemblent beaucoup aux fonctions à ceci prêt que leur exécution peuvent être suspendu et reprendre à plusieurs endroit dans la fonction. Python dispose déjà de constructions de ce genre : les générateurs[^ndbp_gen]. C'est ainsi avec les générateurs que *asyncio* a été initialement développé.
+Tandis que *Node.js*, par exemple, emploie ce qu'on appelle des fonctions de rappel 
+(*callbacks*) pour ordonnancer les différentes étapes d'un algorithme, *asyncio* 
+utilise des coroutines, lesquelles permettent d'écrire des fonctions asynchrones 
+avec un style procédurale. Les [coroutines](https://fr.wikipedia.org/wiki/Coroutine) 
+ressemblent beaucoup aux fonctions, à l'exception prêt que leur exécution peut être 
+suspendue et reprise à plusieurs endroits dans la fonction. Python dispose déjà de 
+constructions de ce genre : les générateurs[^ndbp_gen]. C'est ainsi avec les 
+générateurs que *asyncio* a été initialement développé.
 
-Reprenons l'exemple décrit plus haut avec Python 3.4, *asyncio*, la bibliothèque [aiohttp](https://github.com/KeepSafe/aiohttp)[^ndbp_aiohttp] pour faire des requêtes http et la bibliothèque [aiofiles](https://github.com/Tinche/aiofiles/) pour écrire dans des fichiers locaux, le tout de façon asynchrone :
+[^ndbp_gen]: Les générateurs sont en théorie 
+[des formes particulières de coroutines](https://en.wikipedia.org/wiki/Coroutine#Comparison_with_generators), 
+mais leur implémentation en Python leur confère pleinement le statut de coroutine.
+
+Pour illustrer cela, reprenons l'exemple décrit plus haut, avec cette fois Python 3.4, 
+*asyncio*, la bibliothèque [aiohttp](https://github.com/KeepSafe/aiohttp)[^ndbp_aiohttp] 
+pour faire des requêtes HTTP et la bibliothèque [aiofiles](https://github.com/Tinche/aiofiles/) 
+pour écrire dans des fichiers locaux, le tout de façon asynchrone :
+
+[^ndbp_aiohttp]: Bibliothèque qui propose des fonctions d'entrées/sorties sur le protocole HTTP.
 
 ```python
 import asyncio
@@ -95,103 +149,71 @@ import aiofiles
 
 @asyncio.coroutine           # On déclare cette fonction comme étant une coroutine
 def fetch_page(url, filename, chunk_size=512):
-    # À la ligne suivante, la fonction est interrompu tant que la requête n'est pas revenu
+    # À la ligne suivante, la fonction est interrompue tant que la requête n'est pas revenue
+    # Le programme peut donc vaquer à d'autres taches
     response = yield from aiohttp.request('GET', url)
+    
+    # Le serveur HTTP nous a répondu, on reprend l'appel de la fonction à ce 
+    # niveau et vérifie que la connexion est correctement établie
     assert response.status == 200
     
-    # Création du fichier de sortie en asynchrone
+    # De même, on suspend ici la fonction le temps que le fichier soit créé
     fd = yield from aiofiles.open(filename, mode='wb')
     try:
         while True:
-            # On lit le contenu au fur et à mesure de son arrivée et on interromps la fonction en attendant
+            # On demande un paquet au serveur Web et interrompt la coroutine le 
+            # temps qu'il nous réponde
             chunk = yield from response.content.read(chunk_size)
+
             if not chunk:
                 break
-            # on interromps la fonction le temps de l'écriture dans le fichier
+            
+            # On suspend la coroutine le temps que le disque dur écrive dans le fichier
             yield from fd.write(chunk)
 
     finally:
-        # On ferme le fichier
+        # On ferme le fichier de manière asynchrone
         yield from fd.close()
 
 if __name__ == "__main__":
+    # On démarre une tâche dans la boucle évènementielle.
+    # Vu qu'il n'y en a qu'une seule, procéder de manière asynchrone n'est pas très utile ici.
     asyncio.get_event_loop().run_until_complete(fetch_page('http://zestedesavoir.com/', 'out.html'))
 ```
 
-[^ndbp_gen]: Les générateurs sont en réalité [des formes particulières de coroutines](https://en.wikipedia.org/wiki/Coroutine#Comparison_with_generators)
+Cet exemple nous montre comment utiliser les générateurs et *asyncio* pour obtenir 
+un code asynchrone lisible. Toutefois :
 
-[^ndbp_aiohttp]: Bibliothèque qui propose des fonctions d'entrées/sorties sur le protocole http.
-
-Dans notre exemple la coroutine est suspendu explicitement à plusieurs endroits (partout où est noté l'expression `yield from`) et la boucle événementielle (définit à la ligne 27) pourrait ainsi en profiter pour faire d'autres opérations. Les générateurs et *asyncio* permettent donc de découper facilement les opérations d'une fonction entre les entrées/sorties mais on peut remarquer quelques problèmes rendant le code moins clair :
-
- - Il y a détournement du rôle d'origine de l'instruction `yield from`. Sans le décorateur la fonction pourrait être facilement confondue avec un générateur classique.
- - Tandis que l'exemple d'origine utilisait `with` pour assurer la fermeture du fichier même en cas d'exception, ici nous somme obligé de protéger "manuellement" le code. En effet `with` n'est pas prévu pour appeler des coroutines. Si les opérations de début et fermeture doivent être faites de manière asynchrone, comme ici, il est obligatoire de le faire manuellement.
- - De la même façon il est nécessaire de boucler "manuellement" sur le contenu, l'expression `for` n'étant pas prévu pour ce genre de fonctionnement.
-
+ - Il y a détournement du rôle d'origine de l'instruction `yield from`. Sans le décorateur la fonction pourrait être facilement confondue avec un générateur classique, sans rapport avec de l'asynchrone.
+ - Tandis que l'exemple d'origine utilisait `with` pour assurer la fermeture du fichier même en cas d'exception, nous sommes obligés ici de reproduire manuellement le comportement de cette instruction. En effet `with` n'est pas prévue pour appeler des coroutines, donc on ne peut effectuer de manière asynchrone les opérations d'entrée (ligne 16) ni de sortie (ligne 31).
+ - De la même façon, l'instruction `for` ne permet pas de lire un itérable de manière asynchrone comme fait ligne 21. Il nous faut donc passer peu élégamment par une boucle `while`.
 
 ### Les nouveaux mot-clés
 
-Python 3.5 introduit deux nouveaux mot-clés pour résoudre les problèmes précédemment cités : `async` et `await` (comme en C#). De l'extérieure, `async` vient remplacer le décorateur `asyncio.coroutine` et `await` l'expression `yield from`. Le code précédent peut donc s'écrire avec Python 3.5 de la façon suivante :
+Python 3.5 introduit deux nouveaux mot-clés pour résoudre les problèmes précédemment 
+cités : `async` et `await`. De l'extérieur, `async` vient remplacer le décorateur 
+`asyncio.coroutine` et `await` l'expression `yield from`.
 
-```python hl_lines="6 8 12 16 20 24"
-import asyncio
-import aiohttp
-import aiofiles
+Mais les modifications sont plus importantes que ces simples synonymes. Tout 
+d'abord, une coroutine déclarée avec `async` n'est **pas** un générateur. Même si en 
+interne les deux types de fonctions partagent une grande partie de leur implémentation, 
+il s'agit de constructions du langage différentes et il est possible que les différences 
+se creusent dans les prochaines versions de Python. Pour marquer cette distinction 
+et le fait que des générateurs sont une forme restreinte de coroutines, il est 
+possible dans Python 3.5 d'utiliser des générateurs partout où une coroutine est 
+attendue, mais pas l'inverse. Le module *asyncio* continue ainsi à supporter les 
+deux formes.
 
-# On déclare cette fonction comme étant une coroutine
-async def fetch_page(url, filename, chunk_size=512):
-    # À la ligne suivante, la fonction est interrompu tant que la requête n'est pas revenu
-    response = await aiohttp.request('GET', url)
-    assert response.status == 200
-    
-    # Création du fichier de sortie en asynchrone
-    fd = await aiofiles.open(filename, mode='wb')
-    try:
-        while True:
-            # On lit le contenu au fur et à mesure de son arrivée et on interromps la fonction en attendant
-            chunk = await response.content.read(chunk_size)
-            if not chunk:
-                break
-            # on interromps la fonction le temps de l'écriture dans le fichier
-            await fd.write(chunk)
+L'ajout de ces mot-clés a aussi été l'occasion d'introduire la possibilité d'itérer 
+de manière asynchrone sur des objets. Ce support, assuré en interne par les nouvelles 
+méthodes `__aiter__` et `__anext__` pourra être utilisé par des bibliothèques 
+comme *aiohttp* pour simplifier les itérations grâce à la nouvelle instruction `async for`.
 
-    finally:
-        # On ferme le fichier
-        await fd.close()
+De la même façon, des *context managers* asynchrones font leur apparition via 
+l'instruction `async with`, en utilisant les méthodes `__aenter__` et `__aexit__`. 
 
-if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(fetch_page('http://zestedesavoir.com/', 'out.html'))
-```
-
-Mais les modifications sont plus importantes que ces simples synonymes. Tout d'abord une coroutine déclaré avec `async` n'est PAS un générateur. Même si en interne les deux types de fonctions partagent une grande partie de leur implémentation, il s'agit de constructions du langage différentes et il est possible que les différences se creusent dans les prochaines versions de Python. Pour marquer cette différence et le fait que des générateurs sont une forme retreinte de coroutines, il est possible dans Python 3.5 d'utiliser des générateurs partout où une coroutine est attendu, mais pas l'inverse. Le module *asyncio* continue ainsi à supporter les deux formes.
-
-L'ajout de ces mots clés a aussi été l'occasion d'ajouter la possibilité d'itérer de manière asynchrone sur des objets. Ce support, assuré en interne par les nouvelles méthodes `__aiter__` et `__anext__` pourra être utilisé par des bibliothèques comme *aiohttp* pour simplifier les itération grâce à la nouvelle instruction `async for` :
-
-```python hl_lines="15"
-import asyncio
-import aiohttp
-import aiofiles
-
-# On déclare cette fonction comme étant une coroutine
-async def fetch_page(url, filename, chunk_size=512):
-    # À la ligne suivante, la fonction est interrompu tant que la requête n'est pas revenu
-    response = await aiohttp.request('GET', url)
-    assert response.status == 200
-    
-    # Création du fichier de sortie
-    fd = await aiofiles.open(filename, mode='wb')
-    try:
-        # On lit le contenu au fur et à mesure de son arrivée et on interromps la fonction en attendant
-        async for chunk in response.content.read_chunk(chunk_size):
-            await fd.write(chunk)
-    finally:
-        await fd.close()
-    
-if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(fetch_page('http://zestedesavoir.com/', 'out.html'))
-```
-
-De la même façon, des *context manager* asynchrone, utilisant l'instruction `async with`, font leur apparition, en utilisant les méthodes `__aenter__` et `__aexit__`, permettant en Python 3.5 d'écrire des coroutines de la forme suivante :
+Il est donc possible, et conseillé, en Python 3.5 de ré-écrire le code précédent de la manière 
+suivante.
 
 ```python hl_lines="12"
 import asyncio
@@ -200,14 +222,14 @@ import aiofiles
 
 # On déclare cette fonction comme étant une coroutine
 async def fetch_page(url, filename, chunk_size=512):
-    # À la ligne suivante, la fonction est interrompu tant que la requête n'est pas revenu
+    # À la ligne suivante, la fonction est interrompue tant que la connexion n'est pas établie
     response = await aiohttp.request('GET', url)
     assert response.status == 200
     
-    # Ouverture du fichier de sortie
+    # Ouverture, puis fermeture, du fichier de sortie de manière asynchrone
     async with aiofiles.open(filename, mode='wb') as fd:
     
-        # On lit le contenu au fur et à mesure de son arrivée et on interromps la fonction en attendant
+        # On lit le contenu au fur et à mesure que les paquets arrivent et on interrompt l'appel en attendant
         async for chunk in esponse.content.read_chunk(chunk_size):
         
             await fd.write(chunk)
@@ -216,18 +238,26 @@ if __name__ == "__main__":
     asyncio.get_event_loop().run_until_complete(fetch_page('http://zestedesavoir.com/', 'out.html'))
 ```
 
-L'exemple ci-dessus montre clairement l'objectif de ces ajouts : Si les `async` et `await` sont ignorés, la coroutine est fortement similaire à une implémentation utilisant des fonctions classiques présenté en début de section.
+L'exemple ci-dessus montre clairement l'objectif de ces ajouts : si les `async` 
+et `await` sont ignorés, la coroutine est fortement similaire à une implémentation 
+utilisant des fonctions classiques présentée en début de section.
 
 [[a]]
-| Les deux derniers exemples de codes sont des aperçus de ce que pourraient être la programmation asynchrone avec Python 3.5. A l'heure où ces lignes sont écrites *aiohttp* et *aiohttp* ne supportent pas encore les nouvelles instructions `async for` et `async with`. Même si cela ne saurait tarder, ne vous attendez pas à ce que ces exemples fonctionnent directement dans Python 3.5 aujourd'hui.
+| Le dernier exemple de codes est un aperçu de ce que pourrait être la 
+programmation asynchrone avec Python 3.5. A l'heure où ces lignes sont écrites 
+*aiohttp* et *aiohttp* ne supportent pas encore les nouvelles instructions `async for` 
+et `async with`. De la même manière, pour l'instant, seul *asyncio* gère les mot-clés 
+`async` et `await` au niveau de sa boucle évènementielle.
 
-Enfin notez que les expressions `await`, au delà de leur précédence beaucoup plus faible, sont moins restreintes que les `yield from` et peuvent être placées partout où une expression est attendu. Ainsi les codes suivants sont valides :
+Enfin, notez que les expressions `await`, au delà de leur précédence beaucoup plus 
+faible, sont moins restreintes que les `yield from` et peuvent être placées partout 
+où une expression est attendue. Ainsi les codes suivants sont valides.
 
 ```python
 if await foo:
     pass
 
-# ! Différent de "async with"
+# /!\ Différent de `async with`
 with await bar:
      pass
 
@@ -237,11 +267,17 @@ while await spam:
 await spam + await egg
 ```
 
-### Impacte sur vos codes
+### Impact sur vos codes
 
-Pour vos codes existants cette version voit logiquement la dépréciation de l'utilisation de `async` et `await` comme nom de variable. Pour le moment un simple avertissement sera émit qui sera transformé en erreur dans Python 3.7. Ces modifications restent donc parfaitement rétro-compatible avec Python 3.4. 
+Concernant vos codes existants, cette version introduit logiquement la dépréciation 
+de l'utilisation de `async` et `await` comme noms de variable. Pour le moment, un 
+simple avertissement sera émis, lequel sera transformé en erreur dans Python 3.7. 
+Ces modifications restent donc parfaitement rétro-compatibles avec Python 3.4. 
 
-Si vous utilisez *asyncio*, rien ne change pour vous et vous pouvez continuer à utiliser les générateurs si vous souhaitez conserver le support de Python 3.4. L'ajout des méthodes de la forme `__a****__` peut vous permettre cependant de supporter les nouveautés de Python 3.5 mais n'est pas obligatoire.
+Si vous utilisez *asyncio*, rien ne change pour vous et vous pouvez continuer à 
+employer les générateurs si vous souhaitez conserver le support de Python 3.4. 
+L'ajout des méthodes de la forme `__a****__` peut vous permettre cependant de 
+supporter les nouveautés de Python 3.5, mais n'est pas obligatoire.
 
 ## Opérateur de multiplication matricielle -- PEP 465
 
