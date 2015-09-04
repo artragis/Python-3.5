@@ -412,7 +412,7 @@ De plus, comme d’habitude, tout un tas de fonctions, de petites modifications 
 
 Notons aussi que le support de Windows XP est supprimé (cela ne veut pas dire que Python 3.5 ne fonctionnera pas dessus, mais rien ne sera fait par les développeurs pour cela). 
 
-Enfin a partir de la première *release candidate* de CPython 3.5, le dépot source utilisé a été sur [BitBucket](https://bitbucket.org/larry/cpython350) plutôt que sur le traditionnel [dépot mercurial auto-hébergé](https://hg.python.org/cpython). Il n'est pas encore connu si les prochaines versions suivront ce changement. Pour le moment, les branches pour les versions 3.5.1 et 3.6 restent sur [https://hg.python.org/cpython](https://hg.python.org/cpython).
+Enfin a partir de la première *release candidate* de CPython 3.5, le dépot source utilisé "comme référence", pour le développement de CPython, a été sur [BitBucket](https://bitbucket.org/larry/cpython350) plutôt que sur le traditionnel [dépot mercurial auto-hébergé](https://hg.python.org/cpython) de la fondation. Il n'est pas encore connu si les prochaines versions suivront ce changement et si le développement de CPython se déplacera sur BitBucket. Il s'agit d'une expérimentation que les developpeurs vont évaluer. Pour le moment, les branches pour les versions 3.5.1 et 3.6 restent sur [https://hg.python.org/cpython](https://hg.python.org/cpython) au moins jusqu'à la sortie de Python 3.5.
 
 <--COMMENT  Si on a le temps :
 
