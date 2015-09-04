@@ -746,9 +746,12 @@ bibliotèque standard :
  - *asyncio* bien que limiter à un seul *thread*, il permet d'écrire des coroutine s'excutant en concurence en tirant 
  partie des temps d'attentes introduits par les entrées/sorties.
  - *threading* qui permet de facilement executer du code sur plusieurs *thread* mais qui restent limiter à un seul 
- coeur de processeur à cause du [GIL](https://en.wikipedia.org/wiki/Global_Interpreter_Lock)[^ndbp_gil].
+ coeur de processeur à cause du GIL[^ndbp_gil].
  - *multiprocessing* en *forkant* l'interpréteur permet d'éxecuter plusieurs codes Python en parralèle sans limitation
  et exploitant pleinnement les ressources calculatoir des processeurs.
+
+[[a]]
+| Le [GIL](https://en.wikipedia.org/wiki/Global_Interpreter_Lock) est une construction implémenté dans de nompreux interpéteurs (CPython, Pypy, Ruby, etc.). Ce mécanisme bloque l'interpréteur pour qu'a chaque instant un seul bytecode puisse être executé. Ce sytème permet de s'assurer que du code éxécuté sur plusieurs *threads* ne va pas poser de problèmes de concurence sur la mémoire, sans vraiment ralentir les codes n'utilisant qu'un seul *thread*. Malheureusement cela empeche d'exploiter les architectures multi-coeurs de nos processeurs.
 
 La multiplicité des solutions ne résouds pas tout. En effet les limitation des *threads* en python les rendent inutile
 quand le traitement ce fait principalement sur le processeur. L'utilisation de *multiprocessing* est alors possible mais 
