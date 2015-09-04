@@ -67,7 +67,7 @@ Or ces lignes représentent tout ce que fait la fonction ou presque. Cela veut d
 
  1. Prendre une tache disponible
  2. Lancer la tache jusqu'à ce qu'elle soit terminé ou qu'elle doivent attendre des entrées/sorties
- 3. Si la tache n'est pas terminé, la mettre dans une liste de tache en attente.
+ 3. Si la tache n'est pas terminé, c'est-à-dire qu'elle doit attendre des entrées/sorties, la mettre dans une liste de tache en attente.
  4. Regarder si certaines taches en attente ont reçu leur données. Si oui, les mettre dans la liste des taches disponible pour être continués
  5. Retourner en 1.
 
@@ -84,7 +84,7 @@ Comme nous l'ons dit, la possibilité d'utiliser une boucle d’événements pou
 
 [^ndbp_bdfl]: *"Benevolent Dictator for Life"* ("dictateur bienveillant à vie")
 
-Tandis que *node.js* utilise, par exemple, un système de "fonctions de rappel" (*callback*) pour ordonnancer les différentes étapes d'un algorithme, Python et *asyncio* utilisent des coroutines permettant d'écrire des fonctions asynchrones "qui ressemblent" à des fonctions procédurales.  Les [coroutines](https://fr.wikipedia.org/wiki/Coroutine) ressemblent beaucoup aux fonctions à ceci prêt que leur exécution peuvent être suspendu et reprendre à plusieurs endroit dans la fonction. Python dispose déjà de constructions de ce genre : les générateurs[^ndbp_gen]. C'est ainsi avec les générateurs que *asyncio* a été initialement développé.
+Tandis que *node.js*, par exemple, utilise ce qu'on appelle des "fonctions de rappel" (*callback*) pour ordonnancer les différentes étapes d'un algorithme, Python et *asyncio* utilisent eux des coroutines permettant d'écrire des fonctions asynchrones "qui ressemblent" à des fonctions procédurales.  Les [coroutines](https://fr.wikipedia.org/wiki/Coroutine) ressemblent beaucoup aux fonctions à ceci prêt que leur exécution peuvent être suspendu et reprendre à plusieurs endroit dans la fonction. Python dispose déjà de constructions de ce genre : les générateurs[^ndbp_gen]. C'est ainsi avec les générateurs que *asyncio* a été initialement développé.
 
 Reprenons l'exemple décrit plus haut avec Python 3.4, *asyncio*, la bibliothèque [aiohttp](https://github.com/KeepSafe/aiohttp)[^ndbp_aiohttp] pour faire des requêtes http et la bibliothèque [aiofiles](https://github.com/Tinche/aiofiles/) pour écrire dans des fichiers locaux, le tout de façon asynchrone :
 
@@ -125,7 +125,7 @@ if __name__ == "__main__":
 Dans notre exemple la coroutine est suspendu explicitement à plusieurs endroits (partout où est noté l'expression `yield from`) et la boucle événementielle (définit à la ligne 27) pourrait ainsi en profiter pour faire d'autres opérations. Les générateurs et *asyncio* permettent donc de découper facilement les opérations d'une fonction entre les entrées/sorties mais on peut remarquer quelques problèmes rendant le code moins clair :
 
  - Il y a détournement du rôle d'origine de l'instruction `yield from`. Sans le décorateur la fonction pourrait être facilement confondue avec un générateur classique.
- - Tandis que l'exemple d'origine utilisait `with` pour assurer la fermeture du fichier même en cas d'exception, ici nous somme obligé de protéger "manuellement" le code, `with` n'étant pas prévu pour être appelé comme un générateur.
+ - Tandis que l'exemple d'origine utilisait `with` pour assurer la fermeture du fichier même en cas d'exception, ici nous somme obligé de protéger "manuellement" le code. En effet `with` n'est pas prévu pour appeler des coroutines. Si les opérations de début et fermeture doivent être faites de manière asynchrone, comme ici, il est obligatoire de le faire manuellement.
  - De la même façon il est nécessaire de boucler "manuellement" sur le contenu, l'expression `for` n'étant pas prévu pour ce genre de fonctionnement.
 
 
