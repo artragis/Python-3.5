@@ -258,6 +258,7 @@ if await foo:
     pass
 
 # /!\ Différent de `async with`
+# Ici, c'est `bar` qui est appelé de manière asynchrone et non `bar.__enter__`
 with await bar:
      pass
 
