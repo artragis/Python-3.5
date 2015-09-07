@@ -740,6 +740,9 @@ l'une des première nouvelle fonctionnalité confirmé pour la version 3.6.
 
 ## Sous-interpréteurs
 
+[[a]]
+| Cette section peut nécessiter des notions avancés de programmation système pour être comprise, en particulier la différence entre un *thread* et un *process* ainsi que leur gestion dans Python.
+
 L'écriture de codes concurent en Python est toujours un sujet chaud. A ce jour trois solutions existent dans la 
 bibliotèque standard :
 
