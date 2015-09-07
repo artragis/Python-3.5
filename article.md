@@ -18,7 +18,7 @@ Les plus pressés peuvent profiter de ce court résumé [des principales nouveau
     >>> d1 = {"j": 9, **{"i": 8}}
     >>> d1 
     {"j": 9, "i": 8}
-    >>> spam(*l1, 3, *(4, 5) g=6, **d1, **{'h':7})
+    >>> spam(*l1, 3, *(4, 5), g=6, **d1, **{'h':7})
     45    # 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9
     ```
 
