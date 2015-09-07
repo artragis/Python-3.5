@@ -599,45 +599,253 @@ Notons aussi que le support de Windows XP est supprimé (cela ne veut pas dire q
 
 Enfin, le développement de CPython 3.5 (à partir de la première *release candidate*) s'est effectué sur [BitBucket](https://bitbucket.org/larry/cpython350) plutôt que sur le traditionnel [dépôt auto-hébergé](https://hg.python.org/cpython) de la fondation, afin de bénéficier des fonctionnalités proposées par le site ; le gestionnaire de versions est toujours Mercurial. Il n'est pas encore connu si les prochaines versions suivront ce changement et si le développement de CPython se déplacera sur BitBucket : il s'agit d'une expérimentation que les développeurs vont évaluer. Pour le moment, les branches pour les versions 3.5.1 et 3.6 restent sur [https://hg.python.org/cpython](https://hg.python.org/cpython) au moins jusqu'à la sortie de Python 3.5.
 
-<--COMMENT  Si on a le temps :
-
-# Support de Python 3.5
-
-
-Support dans les IDE
-
-Support des autres implémentations.
-
-COMMENT-->
-
-
-<--COMMENT   Si ce n'est pas déjà trop long :
-
-# Point sur l'adoption de Python 3
-
-
-COMMENT-->
-
 
 # Ce que l'on peut attendre pour la version 3.6
 
-<--COMMENT
-Accepté pour la 3.5 mais non implémentés
+Il est impossible de savoir précisément ce qui sera disponible dans la prochaine version du langage et de l'interpréteur. 
+En effet aucune entreprise ou groupe ne décide par avance des fonctionnalités. Les changements inclus dépendent des
+propositions faites, majoritairement, sur deux *mailling list* :
 
-    PEP 431 , improved support for time zone databases
-    PEP 432 , simplifying Python's startup sequence
-    PEP 436 , a build tool generating boilerplate for extension modules
-    PEP 447 , support for __locallookup__ metaclass method
-    PEP 468 , preserving the order of **kwargs in a function
+ - [*python-dev*](https://mail.python.org/mailman/listinfo/python-dev) quand cela concerne des changements interne à l'intepréteur CPython.
+ - [*python-ideas*](https://mail.python.org/mailman/listinfo/python-ideas) quand cela concerne des idées générale concernant le langage.
 
-ideas:
+S'en suivient une série de débat qui, si les idées sont acceptés par une majorité de developpeurs principaux, conduit
+à la rédaction d'une [PEP](https://www.python.org/dev/peps/) qui sera accepté, ou refusé, par le BDFL (Guido ou un autre
+developpeur si Guido est l'auteur de la PEP). En l'absence de feuilles de routes définit à l'avance, les PEP peuvent 
+arriver tard dans le cycle de développement. Ainsi la PEP 492 sur `async` et `await` 
+n'a été créé qu'un mois avant la sortie de la première beta de pytohn 3.5.
 
-http://code.activestate.com/lists/python-ideas/34051/
-+ fstrings
+[[a]]
+| Malgré ces incertitudes, on peut deviner quelques modifications probables. Attention cette section reste très spéculative...
+
+## Continuité des changements introduits dans Python 3.5
+
+Trois thématiques de modifications, amorcés dans Python 3.4 et surtout Pytohn 3.5 pourraient être de nouveau source d'ajouts
+important dans Python 3.6 :
+
+ - La programmation asynchrone avec *asyncio* et les coroutines
+ - Les indications de types
+ - La généralisation de l'*unpacking*
+ 
+Les deux premiers éléments sont officiellement en attente de retours de la part des utilisateur de Python les utilisant. 
+Les développeurs de l'interpréteurs attendent de connaitre les problèmes et limitations rencontré en utilisant ces 
+fonctionnalités pour les peaufiner dans les prochaines versions. Python 3.6 devrait donc logiquement voir des améliorations 
+dans ces deux sections en profitant des retours. Déjà quelques remarques ont été faite comme 
+[la complexité de méler des fonctions synchrones et asynchrone](http://code.activestate.com/lists/python-ideas/34419/).
+
+La généralisation de l'*unpacking* pourrait elle aussi continuer. Dans un premier temps la 
+[PEP 448](https://www.python.org/dev/peps/pep-0448/#variations) proposait initialement plus de généralisation qui n'ont 
+pas été retenu pour Pytohn 3.5 par manque de temps pour trouver un concensus ou étudier les problèmes possés par ces 
+modifications de syntaxe. Elles seront donc propablement rapidement re-discuté. De plus, ces ajouts dans Python 3.5 a 
+donné des idées à d'autres développeurs et quelques [nouvelles modifications](http://code.activestate.com/lists/python-ideas/35074/)
+ont été déjà proposés.
 
 
-+ probablement la continuité du support de la programmation asynchrone et l'extension des coroutines
+## Conservation de l'ordre des arguments fournies à `**kwargs` lors de l'appel aux fonctions
 
-+ suivre https://www.python.org/dev/peps/pep-0494/ pour les pep acceptés et dates quand connues
+Cette [PEP](http://www.python.org/dev/peps/pep-0468) a déjà été accepté mais n'a pas put être implémenté dans la version 3.5. 
+Il est donc possible qu'elle soit finalement présente dans la prochaine version. L'idée est que les fonctions puissent connaitre
+l'ordre dans lequel les arguments nommés ont été passé. Prenons un exemple :
 
-COMMENT-->
+```python
+def spam(**kwargs):
+    for k, v in kwargs.items():
+        print(k, v)
+
+spam(a=1, b=2)
+```
+
+Avec Python 3.5, comme toutes versions de CPython et presques toutes les autres implémentations (sauf PyPy), nous ne pouvons
+pas savoir si le résultat sera :
+
+```
+a 1
+b 2
+```
+
+ou 
+
+
+```
+b 2
+a 1
+```
+
+En effet un dictionnaire est utilisé pour passer les arguments. Or ceux-ci ne garantissent l'ordre d'itération. Pourtant
+Python dispose d'un [`OrderedDict`](https://docs.python.org/3/library/collections.html#collections.OrderedDict) depuis 
+Python 3.1. L'implémentation de cette PEP se résumerait donc de remplacer l'objet utilisé en interne d'un dictionnaire à
+un dictionnaire ordonné. Cependant jusqu'à maintenant cet objet était définit en Python. L'implémentation était donc loin
+d'être la plus efficace possible et ne pouvait pas être utilisé pour un élément aussi critique du langage. C'est pour cette
+raison que l'implémentation a été refaite en C pour python 3.5 comme noté dans la section "De plus petits changements". 
+Maintenant plus rien ne semble bloqué l'implémentation de cette PEP qui devrait donc voir le jour dans Python 3.6.
+
+Le principal intérêt de cette modification est que le fonctionnement actuel est contre intuitif pour bon nombre d'utilisateurs
+connaissant mal le fonctionnement interne de Python. D'autres raisons sont invoqués dans la PEP :
+
+ - De manière évidente les `OrederedDict` pourraient maintenant être créées en utilisant des arguments nommés, comme les
+   dictionnaires.
+ - La sérialization : dans certains formats l'ordre d'apparition des données à de l'importance (ex: l'ordre des colonnes
+   dans un fichier CSV). Cette nouvelle possibilité permettrait de les définir plus facilement en même temps que des 
+   valeurs par defaults. Elle permettrait aussi à des formats comme XML, Json ou Yaml de garantir l'ordre d'apparition
+   des attributs ou clés qui sont enregistrés dans les fichiers.
+ - Le debuggage : le fonctionnement actuel pouvant être aléatoire, il peut être compliqué de reproduire certains bugs. 
+   Si un bug apparait selon l'ordre de définition des arguments, le nouveau comportement facilitera leur correction.
+ - La priorité à donner aux arguments pourrait être spécifier selon l'ordre de leur déclaration.
+ - Les `namedtuple` pourraient être définit avec une valeur par défaut simplement.
+
+et probablement d'autres utilisations qui n'ont pas encore été envisagées.
+
+## Proprités de classes
+
+Toujours dans les petites modifications, un nouveau décorateur disponible de base devrait être introduit : `@classproperty`.
+Si vous connaissez le modèle objet de Python, son nom devrait vous suffir pour deviner son but : permettre de définir des
+propriétés au niveau de classes. Par exemple si vous souhaitez conserver au niveau de la class le nombre d'instances 
+créées et des statistiques sur vos appels:
+
+```python
+class Spam:
+    _n_instance_created = 0
+    _n_egg_call = 0
+    
+    def __init__(self):
+        self.__class__._n_instance_created += 1
+    
+    def egg(self):
+        print("egg")
+        self.__class__._n_egg_call += 1
+    
+    @classproperty
+    def mean_egg_call(cls):
+        return (cls._n_egg_call / cls._n_instance_created) if cls._n_instance_created > 0 else 0
+
+spam = Spam()
+
+spam.egg()
+spam.egg()
+spam.egg()
+
+print(spam.mean_egg_call)   # => 3
+
+spam2 = Spam()
+
+# Les 3 expressions suivantes sont équivalentes
+print(spam.mean_egg_call)    # => 1.5
+print(spam2.mean_egg_call)   # => 1.5
+print(Spam.mean_egg_call)    # => 1.5  , propriété au niveau de la class !
+```
+
+Cet ajout a été proposé sur la *mailling-list python-ideas*. La mise en place d'une implémentation propre et complète de 
+ce comportement est compliqué sans définir une méta-classe. Une solution générique implique donc de le rajouter dans le 
+modèle objet de Python. Guido a rapidement donné son aprobation et un [ticket a été créé](http://bugs.python.org/issue24941)
+en attendant qu'un des developpeurs de CPython l'implémente dans le coeur de l'intrépreteur. Cela pourrait donc être
+l'une des première nouvelle fonctionnalité confirmé pour la version 3.6.
+
+## Sous-interpréteurs
+
+[[a]]
+| Cette section peut nécessiter des notions avancés de programmation système pour être comprise, en particulier la différence entre un *thread* et un *process* ainsi que leur gestion dans Python.
+
+L'écriture de codes concurent en Python est toujours un sujet chaud. A ce jour trois solutions existent dans la 
+bibliotèque standard :
+
+ - *asyncio* bien que limiter à un seul *thread*, il permet d'écrire des coroutine s'excutant en concurence en tirant 
+ partie des temps d'attentes introduits par les entrées/sorties.
+ - *threading* qui permet de facilement executer du code sur plusieurs *thread* mais qui restent limiter à un seul 
+ coeur de processeur à cause du GIL[^ndbp_gil].
+ - *multiprocessing* en *forkant* l'interpréteur permet d'éxecuter plusieurs codes Python en parralèle sans limitation
+ et exploitant pleinnement les ressources calculatoir des processeurs.
+
+[[a]]
+| Le [GIL](https://en.wikipedia.org/wiki/Global_Interpreter_Lock) est une construction implémenté dans de nompreux interpéteurs (CPython, Pypy, Ruby, etc.). Ce mécanisme bloque l'interpréteur pour qu'a chaque instant un seul bytecode puisse être executé. Ce sytème permet de s'assurer que du code éxécuté sur plusieurs *threads* ne va pas poser de problèmes de concurence sur la mémoire, sans vraiment ralentir les codes n'utilisant qu'un seul *thread*. Malheureusement cela empeche d'exploiter les architectures multi-coeurs de nos processeurs.
+
+La multiplicité des solutions ne résouds pas tout. En effet les limitation des *threads* en python les rendent inutile
+quand le traitement ce fait principalement sur le processeur. L'utilisation de *multiprocessing* est alors possible mais 
+a un cout :
+
+ - Le lancement d'un process entraine un *fork* au niveau du système d'exploitation, ce qui prend plus de temps et de 
+ mémoire que lancement d'un *thread* qui est lui presque gratuit à ce niveau.
+ - La communication entre les processus est aussi plus longue. Tandis que les *thread* permetent de partager la mémoire,
+ rendant les communcations direct, les processus necessitent de mettre en places des mecanismes complexes, appelés 
+ [*IPC* pour "communications inter-processus"](https://fr.wikipedia.org/wiki/Communication_inter-processus).
+
+[Une proposition sur *python-ideas*](http://code.activestate.com/lists/python-ideas/34051/) a été formulé au début de 
+l'été pour offrir une nouvelle solution intermédiare entre les *threads* et les *process*, des sous-interpréteurs 
+(*subinterpreters*), en espérant que cela puisse définitvement contenter les développeurs écrivants des codes concurents.
+
+A partir d'un nouveau module *subinterpreters*, reprendant l'interface exposé par les modules *threading* et *multiprocessing*,
+CPython permettrait de lancer dans des *threads* différents interpréteurs, chacun chargé d'executer un code Python. Le fait
+que ce soit des *threads* qui soient utilisé rendrait ce module beaucoup plus leger à utiliser que *multiprocessing*. 
+L'interpréteur se chargerait de lancer ces *threads* et partagerait le maximum de l'implémentation de l'interpréteur.
+Le plus interessant est que ce mécanisme ferait "disparaitre" le *GIL*. En effet chaque sous-interpréteur disposeraient
+d'un espace de nom de propre et indépendant. Chacun aurait donc un *GIL* mais ceux-ci seraient indépendants. D'un point 
+de l'ensemble, la majorité des opérations transformeraient le *GIL* en *LIL* : *Local interpreter lock*. Chaque 
+sous-interpréteur pourrait ainsi fonctionner sur un coeur du processus séparré sans aucun problèmes, permetant de tirer
+pleinnement partie des processeurs modernes. Enfin il faut savoir que CPython possède déjà en interne la notion de 
+sous-interpréteurs en interne, le travail a réaliser consciterai donc à exposer ce code C pour le rendre disponible 
+en Python.
+
+Evidement cette proposition n'est pas une solution miracle. Tout n'est pas si simple et beaucoup d'élements doivent encore
+être discutés. En particulier les moyens de communications entre les sous-interpréteurs (probablemens via des queues comme
+pour *multiprocessing*) et tout un tas de petits détails d'implémentations. Mais la proposition a reçu un acceuil très positif
+et l'auteur est actuellement en train de préparer une PEP à ce sujet.
+
+[^ndbp_gil]: *Global Interpreter Lock*
+
+## Interpolation de chaines
+
+Les interpolations directs de chaines de caractèrent existent dans de nombreux langages : PHP, C#, Ruby, Swift, Perl, etc.
+Un exemple en Perl est par exemple :
+
+```perl
+my $a = 1;
+my $b = 2;
+
+print "Resultat = a + b = $a + $b = @{[$a+$b]}\n";
+# Imprime "Resultat = a + b = 1 + 2 = 3"
+```
+
+Il n'existe pas d'équivalents directs en Python, le plus proche pourrait ressembler à l'exemple suivant :
+
+```python
+a, b = 1, 2
+
+print("Resultat = a + b = %d + %d = %d" % (a, b, a + b))
+# ou
+print("Resultat = a + b = {a} + {b} = {c}".format(a=a, b=b, c=a + b))
+```
+
+Nous voyons ainsi qu'il est necessaire de passer explicitement les variables et, même si il est possible d'utiliser 
+`locals()` ou `globals()` pour s'en passer, il reste impossible d'évaluer une expression, comme ici l'addition, ailleurs 
+qu'à l'exterieur de la chaine de caractère. 
+
+La première proposition effectué, formalisé par le [PEP 498](https://www.python.org/dev/peps/pep-0498/) propose de rajouter
+cette possibilité dans python gràce à un nouveau préfixe de chaine, `f` pour `format-string`, dont voici un exemple 
+d'utilisation issue de la PEP :
+
+```python
+>>> import datetime
+>>> name = 'Fred'
+>>> age = 50
+>>> anniversary = datetime.date(1991, 10, 12)
+>>> f'My name is {name}, my age next year is {age+1}, my anniversary is {anniversary:%A, %B %d, %Y}.'
+'My name is Fred, my age next year is 51, my anniversary is Saturday, October 12, 1991.'
+>>> f'He said his name is {name!r}.'
+"He said his name is 'Fred'."
+```
+
+Cette proposition a fait des émules. Plusieurs développeurs ont mit en évidence que la méthodes d'interpolation peut 
+dépendre du contexte. Par exemple un module de base de donnée comme [`sqlite3`](https://docs.python.org/3.4/library/sqlite3.html)
+propose un système de substitution personnalisé pour éviter les attaques par injection ou encore les moteurs de *templates* pour 
+produire du HTML vont aussi faire des substitutions pour échapper certains caractères comme remplacer `<` ou `>` par, 
+respectivement, `&lt;` ou `&gt;`. La [PEP 501](https://www.python.org/dev/peps/pep-0501/) propose aux developpeurs de définir
+leurs propre méthodes d'interpolations adapté au contexte.
+
+Guido c'est clairement prononcé pour la première proposition afin qu'elle soit implémenté dans Python 3.6. La deuxième est
+plus générale mais plus complexe et peu ainsi poser plusieurs problèmes. Aucune décision n'a encore été prise et les débats
+à ce sujet on encore lieu sur la *mailling list* concernant cette possibilité et la forme qu'elle pourrait prendre. Il est
+donc très probable qu'au moins la première proposition soit implémenté. La deuxième dépendra de la suite des discussions
+mais, à défaut de consensus, les *f-string* simples seront implémentées dans Python 3.6.
+
+-------
+
+TODO: Conclusion général
