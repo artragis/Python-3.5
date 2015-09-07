@@ -246,10 +246,11 @@ l'instruction `async with`, en utilisant les méthodes `__aenter__` et `__aexit_
 Il est donc possible, et conseillé, en Python 3.5 de ré-écrire le code précédent de la manière 
 suivante.
 
-```python hl_lines="12"
+```python hl_lines="12,15"
 import asyncio
 import aiohttp
 import aiofiles
+
 
 # On déclare cette fonction comme étant une coroutine
 async def fetch_page(url, filename, chunk_size=512):
