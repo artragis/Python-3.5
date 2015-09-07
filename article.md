@@ -29,18 +29,17 @@ Les plus pressés peuvent profiter de ce court résumé [des principales nouveau
     ```
 
  - [PEP 492](https://www.python.org/dev/peps/pep-0492) : les coroutines deviennent une construction spécifique du langage, avec l'introduction des mots-clés `async` et `await`. L'objectif étant de compléter le support de la programmation asynchrone dans Python, ils permettent d'écrire des coroutines utilisables avec `asyncio` de façon similaire à des fonctions Python synchrones classiques. Par exemple :
-   
-   ```python
-   async def fetch_page(url, filename):
-       # L'appel à aiohttp.request est asynchrone
-       response = await aiohttp.request('GET', url)
-       # Ici, on a récupéré le résultat de la requête
-       assert response.status == 200
-     
-       async with aiofiles.open(filename, mode='wb') as fd:
-          async for chunk in response.content.read_chunk(chunk_size):
-              await fd.write(chunk)
-   ```
+
+    ```python
+    async def fetch_page(url, filename):
+        # L'appel à aiohttp.request est asynchrone
+        response = await aiohttp.request('GET', url)
+        # Ici, on a récupéré le résultat de la requête
+        assert response.status == 200
+        async with aiofiles.open(filename, mode='wb') as fd:
+            async for chunk in response.content.read_chunk(chunk_size):
+                await fd.write(chunk)
+    ```
  
  - [PEP 484](https://www.python.org/dev/peps/pep-0484/) : les annotations apposables sur les paramètres et la valeur de retour des fonctions et méthodes sont maintenant standardisées et ne devraient servir qu'à préciser le type de ces éléments. Les annotations ne sont toujours pas utilisées par l'interpréteur et cette PEP n'est constituée que de conventions.
  
@@ -127,11 +126,11 @@ l'extérieur...
 
 [[i]]
 | Nous nous comportons naturellement de cette manière dans la vie. Par exemple, 
-si vous effectuez un rapport que vous devez faire relire à votre chef : après 
-lui avoir fait parvenir une première version, vous allez devoir attendre qu'il 
-l'ait étudié avant de le corriger ; plutôt que de patienter bêtement devant son 
-bureau, vous vaquez à vos occupations, et serez informé lorsque le rapport pourra 
-être repris.
+| si vous effectuez un rapport que vous devez faire relire à votre chef : après 
+| lui avoir fait parvenir une première version, vous allez devoir attendre qu'il 
+| l'ait étudié avant de le corriger ; plutôt que de patienter bêtement devant son 
+| bureau, vous vaquez à vos occupations, et serez informé lorsque le rapport pourra 
+| être repris.
 
 #### La programmation asynchrone en Python
 
@@ -276,10 +275,10 @@ utilisant des fonctions classiques présentée en début de section.
 
 [[a]]
 | Le dernier exemple de codes est un aperçu de ce que pourrait être la 
-programmation asynchrone avec Python 3.5. A l'heure où ces lignes sont écrites 
-*aiohttp* et *aiohttp* ne supportent pas encore les nouvelles instructions `async for` 
-et `async with`. De la même manière, pour l'instant, seul *asyncio* gère les mot-clés 
-`async` et `await` au niveau de sa boucle évènementielle.
+| programmation asynchrone avec Python 3.5. A l'heure où ces lignes sont écrites 
+| *aiohttp* et *aiohttp* ne supportent pas encore les nouvelles instructions `async for` 
+| et `async with`. De la même manière, pour l'instant, seul *asyncio* gère les mot-clés 
+| `async` et `await` au niveau de sa boucle événementielle.
 
 Enfin, notez que les expressions `await`, au delà de leur précédence beaucoup plus 
 faible, sont moins restreintes que les `yield from` et peuvent être placées partout 
